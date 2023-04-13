@@ -18,11 +18,11 @@ To-do list
  - Chl-a
    + OBPG 4km
  - Buoy (T, S, vel)
-  + Multiple buoys?
+   + Multiple buoys?
  - River outflow
-  + USGS
+   + USGS
  - GNATS
  - DAYMET
-  + precip
+   + precip
  - ...
 
