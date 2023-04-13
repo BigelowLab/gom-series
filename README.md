@@ -3,6 +3,9 @@
 Time span:
 
 Region definition:
+  Bounding box?
+  Patches?
+  Points?
 
 To-do list
  - SST
