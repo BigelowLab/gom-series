@@ -9,7 +9,7 @@ Region definition:
   - Polygons
     + Jordan Basin, Wilkinson Basin, Georges Basin, Georges Bank, EMCC, WMCC (SST, CHLOR_A)
 To-do list
- - NAO
+ - NAO, AMO -- these are done, in NOAAoscillations.R
  - SST
    + OISST
  - Chl-a
