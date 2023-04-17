@@ -100,9 +100,17 @@ all buoys are read and bound into one table.
 
 ``` r
 x <- read_buoy_ctd() |>
+  dplyr::mutate(depth = factor(as.integer(depth))) |>
   dplyr::mutate(month = format(date, "%b"), .after = date) |>
   dplyr::group_by(buoy)
+```
 
+    ## Warning: There was 1 warning in `dplyr::mutate()`.
+    ## ℹ In argument: `depth = factor(as.integer(depth))`.
+    ## Caused by warning in `factor()`:
+    ## ! NAs introduced by coercion to integer range
+
+``` r
 ggplot(data = x, aes(x = date, y = temperature, color = depth)) +
   scale_y_reverse()  + 
   geom_line() + 

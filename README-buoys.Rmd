@@ -82,6 +82,7 @@ Read one or more buoy CTD data files using `read_buoy_ctd()`.  By default all bu
 
 ```{r}
 x <- read_buoy_ctd() |>
+  dplyr::mutate(depth = factor(as.integer(depth))) |>
   dplyr::mutate(month = format(date, "%b"), .after = date) |>
   dplyr::group_by(buoy)
 
