@@ -70,8 +70,8 @@ decompose_direction = function(x, varname = 'wind_direction'){
 #' 
 #' @param x tibble of data
 met_aggregate_monthly = function(x){
-  dplyr::mutate(x, month = format(time, "%Y-%m-01")) |>
-    dplyr::group_by(month) |>
+  dplyr::mutate(x, date = format(time, "%Y-%m-01")) |>
+    dplyr::group_by(date) |>
     dplyr::summarize(dplyr::across(dplyr::where(is.numeric), ~mean(., na.rm = TRUE)))
 }
 

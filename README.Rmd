@@ -7,16 +7,4 @@ output: github_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r}
-source("setup.R")
-```
-
-### Buoy data aggregated to monthly means
-
-```{r}
-x <- read_buoy_met() |>
-  dplyr::group_by(buoy)
-
-ggplot(data = x, aes(x = month, y = wind_speed, color = buoy)) +
-  geom_line()
-```
+# Aggregating monthly oceanographic time series from the Gulf of Maine

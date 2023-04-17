@@ -1,7 +1,7 @@
 name,longname,id,lon,lat
 wms,Western Maine Shelf,B01,-70.4277,43.18065
-cms,Central Maine Shelf,E01,NA,NA
-penbay,Penobscot Bay,F01,NA,NA
-ems,Eastern Maine Shelf,I01,NA,NA
-jb,Jordan Basin,M01,NA,NA
-nec,Northeast Channel,N01,NA,NA
+cms,Central Maine Shelf,E01,-69.3578,43.7148
+pb,Penobscot Bay,F01,-68.99689,44.05495
+ems,Eastern Maine Shelf,I01,-68.11359,44.10163
+jb,Jordan Basin,M01, -67.88029,43.49041
+nec,Northeast Channel,N01, -65.9267,42.3233
