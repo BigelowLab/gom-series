@@ -37,15 +37,33 @@ To-do list
 
 #### Variables:
 
-Water temperature (all available depths)
-Salinity (all available depths)
-Current speed (all available depths)
-Current direction (all available depths— but I’m not sure how to average this monthly?)
-Air temperature (surface)
-Chlorophyll (surface)
-Wind speed (surface)
-Wind direction (surface — but not sure how to average monthly)
-Wind Gust
+  + CTD
+    - Water temperature (all available depths)
+    - Salinity (all available depths)
+    
+  + 
+    - Current speed (all available depths)
+    - Current direction (all available depths— but I’m not sure how to average this monthly?)
+
+  + Biochem
+    - Chlorophyll (surface)
+
+  + MET
+    - buoy
+    - date
+    - air_temperature
+    - barometric_pressure
+    - wind_gust
+    - wind_speed
+    - wind_direction
+    - visibility
+    - wind_direction_u
+    - wind_direction_v
+
+  Air temperature (surface)
+  Wind speed (surface)
+  Wind direction (surface — but not sure how to average monthly)
+  Wind Gust
 
 For the wind and current direction, if they provide monthly averages, that’s the best option, because then we don’t need to figure out how to do it.
 

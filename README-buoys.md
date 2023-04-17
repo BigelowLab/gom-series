@@ -1,4 +1,4 @@
-GOM-Series
+GOM-Series Buoys
 ================
 
 ``` r
@@ -43,6 +43,8 @@ basemap(limits = bb, bathymetry = TRUE) +
 
 ![](README-buoys_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
 
+## MET
+
 ### Fetch meteorological (met) data
 
 Meteorological data for these buoys can be fetched using
@@ -79,3 +81,32 @@ ggplot(data = filter(x, month == 'Aug'),
     ## `geom_smooth()` using formula = 'y ~ x'
 
 ![](README-buoys_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
+
+## CTD at depth (temp, salinity, sigma_t)
+
+### Fetch CTD data
+
+CTD data for these buoys can be fetched using `fetch_buoy_ctd()`. This
+function downloads high temporal resolution data per buoy at various
+depths, and aggregates into monthly means, and saved to disk a simple
+table. Run this as needed to update data.
+
+    ctd <- lapply(buoys$id, fetch_buoy_ctd)
+
+### Read and display CTD data
+
+Read one or more buoy CTD data files using `read_buoy_ctd()`. By default
+all buoys are read and bound into one table.
+
+``` r
+x <- read_buoy_ctd() |>
+  dplyr::mutate(month = format(date, "%b"), .after = date) |>
+  dplyr::group_by(buoy)
+
+ggplot(data = x, aes(x = date, y = temperature, color = depth)) +
+  scale_y_reverse()  + 
+  geom_line() + 
+  facet_wrap(~buoy)
+```
+
+![](README-buoys_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
