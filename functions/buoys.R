@@ -210,3 +210,102 @@ read_buoy_ctd <- function(buoy = buoy_lut()$id,
     dplyr::bind_rows()
   
 }
+
+### Optics
+
+# http://www.neracoos.org/erddap/tabledap/B01_optics_hist.csv?station%2Ctime%2Cwater_depth%2Csolar_zenith_angle%2CEd_PAR%2Cchlorophyll%2Clongitude%2Clatitude%2Cdepth&time%3E=2007-09-16T00%3A00%3A00Z&time%3C=2007-09-23T19%3A00%3A00Z
+# http://www.neracoos.org/erddap/tabledap/B01_optics_all.csv?station%2Ctime%2Cwater_depth%2Csolar_zenith_angle%2CEd_PAR%2Cchlorophyll&time%3E%3D1980-01-01T00%3A00%3A00Z&time%3C%3D2023-04-17T17%3A52%3A48Z
+
+#
+query_uri_optics = function(buoyid = "$BUOYID", escape = TRUE){
+  
+  "http://www.neracoos.org/erddap/tabledap/B01_optics_all.csv?station%2Ctime%2Cwater_depth%2Csolar_zenith_angle%2CEd_PAR%2Cchlorophyll&time%3E=2023-04-10T00%3A00%3A00Z&time%3C=2023-04-17T14%3A30%3A00Z"
+  base_uri = "http://www.neracoos.org/erddap/tabledap"
+  name = sprintf("%s_optics_hist.csv", buoyid)
+  query = c("station", "time", "water_depth","solar_zenith_angle","Ed_PAR", "chlorophyll")
+  constraints = c("time>=1980-01-01T00:00:00Z",
+                  format(time_to_utc(x = Sys.time()), "time<=%Y-%m-%dT%H:%M:%SZ"))
+  if (escape){
+    uri =  paste0(file.path(base_uri,  name), 
+                  "?", 
+                  xml2::url_escape(paste(query, collapse = ",")), 
+                  "&", 
+                  paste(xml2::url_escape(constraints), collapse = "&"))
+  } else {
+    uri =  paste0(file.path(base_uri,  name), "?", 
+                  paste(query, collapse = ","), "&", 
+                  paste(constraints, collapse = "&"))
+  }
+  
+  uri
+}
+
+#' Aggregate columns by month
+#' 
+#' Add month date (first of each month)
+#' Group by month and depth
+#' Sumamrize with mean
+#' 
+#' @param x tibble of data
+aggregate_monthly_optics = function(x){
+  dplyr::mutate(x, date = format(time, "%Y-%m-01")) |>
+    dplyr::group_by(date, water_depth) |>
+    dplyr::summarize(dplyr::across(dplyr::where(is.numeric), ~mean(., na.rm = TRUE)))
+}
+
+
+#' Read raw optics data for a given buoy
+#' 
+#' @param filename char, the path to the data to read
+#' @return tibble of data
+read_raw_optics <- function(filename){
+  col_names <- strsplit(readLines(filename, n = 1), ",", fixed = TRUE)[[1]]
+  readr::read_csv(filename,  col_names = col_names, skip = 2, show_col_types = FALSE) |>
+    mutate(across(where(is.numeric), ~na_if(., NaN)))
+}
+
+#' Fetch met data for a given buoy
+#' 
+#' @param buoy char, the buoy id
+#' @param ofile char, the path to save data to
+#' @return tibble of data
+fetch_buoy_optics= function(buoy = "B01", 
+                          path = here::here("data")){
+  
+  ofile = file.path(path, paste0(buoy, "_optics_monthly.csv"))
+  tmpfile = tempfile()
+  uri = query_uri_optics(buoy)
+  ok <- try(download.file(uri, tmpfile))
+  if (!inherits(ok, "try-error")){
+    r = read_raw_optics(tmpfile) |>
+      aggregate_monthly_optics() |>
+      dplyr::mutate(buoy = buoy, .before = 1) |>
+      readr::write_csv(ofile)
+  } else {
+    r = NULL
+  }
+  r
+}
+
+
+#' Read monthly optics data
+#' 
+#' @param buoy char, one or more buoy id codes
+#' @param path char, the path to the data
+#' @return tibble of monthly met means  If more than one buoy is requested they
+#'   are bound into one tibble
+read_buoy_optics <- function(buoy = buoy_lut()$id, 
+                          path = here::here("data")){
+  
+  lapply(buoy, 
+         function(id){
+           filename = file.path(path, paste0(id, "_optics_monthly.csv"))
+           x <- if (file.exists(filename)){
+            readr::read_csv(filename, show_col_types = FALSE)
+           } else {
+             NULL
+           }
+         }) |>
+    dplyr::bind_rows()
+  
+}

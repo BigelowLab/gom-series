@@ -92,3 +92,31 @@ ggplot(data = x, aes(x = date, y = temperature, color = depth)) +
   facet_wrap(~buoy)
 ```
 
+## OPTICS at depth (solar_zenith_angle, Ed_PAR, chlorophyll)
+
+### Fetch OPTICS data
+OPTICS data for these buoys can be fetched using `fetch_buoy_optics()`. This function downloads high temporal resolution data per buoy at various depths, and aggregates into monthly means, and saved to disk a simple table. Run this as needed to update data. Not every buoy has optics data.
+
+```
+ctd <- lapply(buoys$id, fetch_buoy_optics)
+```
+
+### Read and display CTD data
+
+Read one or more buoy CTD data files using `read_buoy_ctd()`.  By default all buoys are read and bound into one table.  Note it seems these measures are not at the surface but instead are at varying depths.
+
+```{r}
+x <- read_buoy_optics() |>
+  dplyr::mutate(month = format(date, "%b"), .after = date) |>
+  dplyr::mutate(water_depth = factor(water_depth)) |>
+  dplyr::group_by(buoy)
+
+count(x, buoy, water_depth)
+```
+
+```{r}
+ggplot(data = x, aes(x = date, y = chlorophyll, color = water_depth)) +
+  scale_y_log10() + 
+  geom_line() + 
+  facet_wrap(~buoy)
+```

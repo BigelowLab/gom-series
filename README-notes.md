@@ -45,8 +45,11 @@ To-do list
     - Current speed (all available depths)
     - Current direction (all available depths— but I’m not sure how to average this monthly?)
 
-  + Biochem
+  + Optics
     - Chlorophyll (surface)
+    - solar_zenith_angle (depth)
+    - Ed_PAR (depth)
+    - chlorophyll (depth)
 
   + MET
     - buoy
@@ -60,10 +63,6 @@ To-do list
     - wind_direction_u
     - wind_direction_v
 
-  Air temperature (surface)
-  Wind speed (surface)
-  Wind direction (surface — but not sure how to average monthly)
-  Wind Gust
 
 For the wind and current direction, if they provide monthly averages, that’s the best option, because then we don’t need to figure out how to do it.
 
