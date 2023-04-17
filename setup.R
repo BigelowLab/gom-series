@@ -11,7 +11,7 @@ suppressPackageStartupMessages({
 
 PATH = here::here()
 # source functionality
-for (f in list.files(here("scripts"), pattern = "^.*\\.R$", full.names = TRUE)){
+for (f in list.files(here("functions"), pattern = "^.*\\.R$", full.names = TRUE)){
   source(f)
 }
 
