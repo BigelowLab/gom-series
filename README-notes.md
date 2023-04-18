@@ -41,7 +41,7 @@ To-do list
     - Water temperature (all available depths)
     - Salinity (all available depths)
     
-  + 
+  + ACDP and RTSC
     - Current speed (all available depths)
     - Current direction (all available depths— but I’m not sure how to average this monthly?)
 

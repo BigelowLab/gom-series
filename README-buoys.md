@@ -68,6 +68,8 @@ ggplot(data = x, aes(x = date, y = wind_speed, color = buoy, shape = buoy)) +
   geom_line()
 ```
 
+    ## Warning: Removed 4 rows containing missing values (`geom_line()`).
+
 ![](README-buoys_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
 
 ``` r
@@ -79,6 +81,10 @@ ggplot(data = filter(x, month == 'Aug'),
 ```
 
     ## `geom_smooth()` using formula = 'y ~ x'
+
+    ## Warning: Removed 1 rows containing non-finite values (`stat_smooth()`).
+
+    ## Warning: Removed 1 rows containing missing values (`geom_point()`).
 
 ![](README-buoys_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
 
@@ -117,4 +123,51 @@ ggplot(data = x, aes(x = date, y = temperature, color = depth)) +
   facet_wrap(~buoy)
 ```
 
+    ## Warning: Removed 1 row containing missing values (`geom_line()`).
+
 ![](README-buoys_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
+
+## OPTICS at depth (solar_zenith_angle, Ed_PAR, chlorophyll)
+
+### Fetch OPTICS data
+
+OPTICS data for these buoys can be fetched using `fetch_buoy_optics()`.
+This function downloads high temporal resolution data per buoy at
+various depths, and aggregates into monthly means, and saved to disk a
+simple table. Run this as needed to update data. Not every buoy has
+optics data.
+
+    ctd <- lapply(buoys$id, fetch_buoy_optics)
+
+### Read and display CTD data
+
+Read one or more buoy CTD data files using `read_buoy_ctd()`. By default
+all buoys are read and bound into one table. Note it seems these
+measures are not at the surface but instead are at varying depths.
+
+``` r
+x <- read_buoy_optics() |>
+  dplyr::mutate(month = format(date, "%b"), .after = date) |>
+  dplyr::mutate(water_depth = factor(water_depth)) |>
+  dplyr::group_by(buoy)
+
+count(x, buoy, water_depth)
+```
+
+    ## # A tibble: 4 × 3
+    ## # Groups:   buoy [4]
+    ##   buoy  water_depth     n
+    ##   <chr> <fct>       <int>
+    ## 1 B01   62             66
+    ## 2 E01   100            52
+    ## 3 I01   100            56
+    ## 4 M01   285            55
+
+``` r
+ggplot(data = x, aes(x = date, y = chlorophyll, color = water_depth)) +
+  scale_y_log10() + 
+  geom_line() + 
+  facet_wrap(~buoy)
+```
+
+![](README-buoys_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
