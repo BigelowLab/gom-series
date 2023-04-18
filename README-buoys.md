@@ -139,7 +139,7 @@ optics data.
 
     ctd <- lapply(buoys$id, fetch_buoy_optics)
 
-### Read and display CTD data
+### Read and display OPTICS data
 
 Read one or more buoy CTD data files using `read_buoy_ctd()`. By default
 all buoys are read and bound into one table. Note it seems these
@@ -171,3 +171,71 @@ ggplot(data = x, aes(x = date, y = chlorophyll, color = water_depth)) +
 ```
 
 ![](README-buoys_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
+
+## ACDP at depth (water_depth, depth, current_u, current_v)
+
+### Read and display ADCP data
+
+Read one or more buoy ADCP data files using `read_buoy_adcp()`. By
+default all buoys are read and bound into one table.
+
+``` r
+x <- read_buoy_adcp() |>
+  dplyr::mutate(month = format(date, "%b"), .after = date) |>
+  dplyr::mutate(water_depth = factor(water_depth)) |>
+  dplyr::group_by(buoy)
+
+count(x, buoy, water_depth)
+```
+
+    ## # A tibble: 1 × 3
+    ## # Groups:   buoy [1]
+    ##   buoy  water_depth     n
+    ##   <chr> <fct>       <int>
+    ## 1 B01   62             32
+
+``` r
+ggplot(data = x, aes(x = date, y = current_u, color = water_depth)) +
+  geom_line() + 
+  facet_wrap(~buoy)
+```
+
+![](README-buoys_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
+
+## RTSC at surface (current_speed, current_direction, temperature)
+
+### Read and display RTSC data
+
+Read one or more buoy RTSC data files using `read_buoy_rtsc()`. By
+default all buoys are read and bound into one table.
+
+``` r
+x <- read_buoy_rtsc() |>
+  dplyr::mutate(month = format(date, "%b"), .after = date) |>
+  dplyr::mutate(water_depth = factor(depth)) |>
+  dplyr::group_by(buoy)
+
+count(x, buoy, depth)
+```
+
+    ## # A tibble: 6 × 3
+    ## # Groups:   buoy [6]
+    ##   buoy  depth     n
+    ##   <chr> <dbl> <int>
+    ## 1 B01       2   251
+    ## 2 E01       2   256
+    ## 3 F01       2   248
+    ## 4 I01       2   251
+    ## 5 M01       2   236
+    ## 6 N01       2   177
+
+``` r
+ggplot(data = x, aes(x = date, y = current_direction_u)) +
+  geom_line() + 
+  geom_smooth(method = "lm", se=FALSE) +
+  facet_wrap(~buoy)
+```
+
+    ## `geom_smooth()` using formula = 'y ~ x'
+
+![](README-buoys_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->

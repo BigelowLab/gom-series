@@ -55,6 +55,21 @@ mask_qc <- function(x, threshold = 0, suffix = "_qc", replacement = NA_real_){
   x
 }
 
+#' Fetch ERRDAP CSV file
+#' 
+#' @param x char a url for download
+#' @param filename char, the destination for the file
+#' @param ... other argument for \code{download.file}
+#' @return 0 for success, non-zero for problems
+fetch_errdap_csv <- function(x, filename = tempfile(), ...){
+  ok <- try(download.file(x, filename, ...))
+  if (inherits(ok, 'try-error')){
+    print(ok)
+    ok = 1
+  }
+  ok
+}
+
 #' Given a raw data table, drop 'name_qc' columns
 #' 
 #' @param x tibble of raw data
@@ -141,7 +156,9 @@ fetch_buoy_met = function(buoy = "B01",
   ofile = file.path(path, paste0(buoy, "_met_monthly.csv.gz"))
   tmpfile = tempfile()
   uri = met_query_uri(buoy)
-  ok <- download.file(uri, tmpfile)
+  ok <- fetch_errdap_csv(uri, tmpfile)
+  if (ok > 0) return(NULL)
+  
   met_read_raw(tmpfile) |>
     mask_qc() |>
     drop_suffix() |>
@@ -239,7 +256,8 @@ fetch_buoy_ctd = function(buoy = "B01",
   ofile = file.path(path, paste0(buoy, "_ctd_monthly.csv.gz"))
   tmpfile = tempfile()
   uri = ctd_query_uri(buoy)
-  ok <- download.file(uri, tmpfile)
+  ok <- fetch_errdap_csv(uri, tmpfile)
+  if (ok > 0) return(NULL)
   ctd_read_raw(tmpfile) |>
     mask_qc() |>
     drop_suffix() |>
@@ -337,17 +355,15 @@ fetch_buoy_optics= function(buoy = "B01",
   ofile = file.path(path, paste0(buoy, "_optics_monthly.csv.gz"))
   tmpfile = tempfile()
   uri = query_uri_optics(buoy)
-  ok <- try(download.file(uri, tmpfile))
-  if (!inherits(ok, "try-error")){
-    r = read_raw_optics(tmpfile) |>
-      mask_qc() |>
-      drop_suffix() |>
-      aggregate_monthly_optics() |>
-      dplyr::mutate(buoy = buoy, .before = 1) |>
-      readr::write_csv(ofile)
-  } else {
-    r = NULL
-  }
+  ok <- fetch_errdap_csv(uri, tmpfile)
+  if (ok > 0) return(NULL)
+  r = read_raw_optics(tmpfile) |>
+    mask_qc() |>
+    drop_suffix() |>
+    aggregate_monthly_optics() |>
+    dplyr::mutate(buoy = buoy, .before = 1) |>
+    readr::write_csv(ofile)
+
   r
 }
 
@@ -430,7 +446,8 @@ aggregate_monthly_rtsc = function(x){
 read_raw_rtsc <- function(filename){
   col_names <- strsplit(readLines(filename, n = 1), ",", fixed = TRUE)[[1]]
   readr::read_csv(filename,  col_names = col_names, skip = 2, show_col_types = FALSE) |>
-    mutate(across(where(is.numeric), ~na_if(., NaN)))
+    mutate(across(where(is.numeric), ~na_if(., NaN))) |>
+    decompose_direction("current_direction") 
 }
 
 #' Fetch met data for a given buoy
@@ -444,17 +461,15 @@ fetch_buoy_rtsc= function(buoy = "B01",
   ofile = file.path(path, paste0(buoy, "_rtsc_monthly.csv.gz"))
   tmpfile = tempfile()
   uri = query_uri_rtsc(buoy)
-  ok <- try(download.file(uri, tmpfile))
-  if (!inherits(ok, "try-error")){
-    r = read_raw_rtsc(tmpfile) |>
-      mask_qc() |>
-      drop_suffix() |>
-      aggregate_monthly_rtsc() |>
-      dplyr::mutate(buoy = buoy, .before = 1) |>
-      readr::write_csv(ofile)
-  } else {
-    r = NULL
-  }
+  ok <- fetch_errdap_csv(uri, tmpfile)
+  if (ok > 0) return(NULL)
+  r = read_raw_rtsc(tmpfile) |>
+    mask_qc() |>
+    drop_suffix() |>
+    aggregate_monthly_rtsc() |>
+    dplyr::mutate(buoy = buoy, .before = 1) |>
+    readr::write_csv(ofile)
+
   r
 }
 
@@ -549,17 +564,15 @@ fetch_buoy_adcp= function(buoy = "B01",
   ofile = file.path(path, paste0(buoy, "_adcp_monthly.csv.gz"))
   tmpfile = tempfile()
   uri = query_uri_adcp(buoy)
-  ok <- try(download.file(uri, tmpfile))
-  if (!inherits(ok, "try-error")){
-    r = read_raw_adcp(tmpfile) |>
-      mask_qc() |>
-      drop_suffix() |>
-      aggregate_monthly_adcp() |>
-      dplyr::mutate(buoy = buoy, .before = 1) |>
-      readr::write_csv(ofile)
-  } else {
-    r = NULL
-  }
+  ok <- fetch_errdap_csv(uri, tmpfile)
+  if (ok > 0) return(NULL)
+  r = read_raw_adcp(tmpfile) |>
+    mask_qc() |>
+    drop_suffix() |>
+    aggregate_monthly_adcp() |>
+    dplyr::mutate(buoy = buoy, .before = 1) |>
+    readr::write_csv(ofile)
+
   r
 }
 
@@ -602,7 +615,7 @@ update_buoys <- function(buoy = buoy_lut()$id,
            'ctd' = lapply(buoy, fetch_buoy_ctd),
            "rtsc" = lapply(buoy, fetch_buoy_rtsc),
            "optics" = lapply(buoy, fetch_buoy_optics),
-           "adcp" = lapply(buoy, fetch_buoy_optics),
+           "adcp" = lapply(buoy, fetch_buoy_adcp),
            stop("dataset not known:", wh) )
   }
   invisible(NULL)
