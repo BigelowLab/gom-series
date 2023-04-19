@@ -3,7 +3,7 @@
 #' Returns a table of buoy metadata
 #' 
 #' @return tibble
-buoy_lut = function(filename = here::here("data", "buoy_listing.csv")){
+buoy_lut = function(filename = here::here("data","buoy", "buoy_listing.csv")){
   readr::read_csv(filename, show_col_types = FALSE)
 }
 
@@ -151,7 +151,7 @@ met_read_raw <- function(filename){
 #' @param ofile char, the path to save data to
 #' @return tibble of data
 fetch_buoy_met = function(buoy = "B01", 
-                         path = here::here("data")){
+                         path = here::here("data","buoy")){
   
   ofile = file.path(path, paste0(buoy, "_met_monthly.csv.gz"))
   tmpfile = tempfile()
@@ -174,7 +174,7 @@ fetch_buoy_met = function(buoy = "B01",
 #' @return tibble of monthly met means  If more than one buoy is requested they
 #'   are bound into one tibble
 read_buoy_met <- function(buoy = buoy_lut()$id, 
-                          path = here::here("data")){
+                          path = here::here("data","buoy")){
   
   lapply(buoy, 
          function(id){
@@ -251,7 +251,7 @@ ctd_read_raw <- function(filename){
 #' @param ofile char, the path to save data to
 #' @return tibble of data
 fetch_buoy_ctd = function(buoy = "B01", 
-                          path = here::here("data")){
+                          path = here::here("data","buoy")){
   
   ofile = file.path(path, paste0(buoy, "_ctd_monthly.csv.gz"))
   tmpfile = tempfile()
@@ -274,7 +274,7 @@ fetch_buoy_ctd = function(buoy = "B01",
 #' @return tibble of monthly met means  If more than one buoy is requested they
 #'   are bound into one tibble
 read_buoy_ctd <- function(buoy = buoy_lut()$id, 
-                          path = here::here("data")){
+                          path = here::here("data","buoy"){
   
   lapply(buoy, 
          function(id){
@@ -350,7 +350,7 @@ read_raw_optics <- function(filename){
 #' @param ofile char, the path to save data to
 #' @return tibble of data
 fetch_buoy_optics= function(buoy = "B01", 
-                          path = here::here("data")){
+                          path = here::here("data","buoy")){
   
   ofile = file.path(path, paste0(buoy, "_optics_monthly.csv.gz"))
   tmpfile = tempfile()
@@ -375,7 +375,7 @@ fetch_buoy_optics= function(buoy = "B01",
 #' @return tibble of monthly met means  If more than one buoy is requested they
 #'   are bound into one tibble
 read_buoy_optics <- function(buoy = buoy_lut()$id, 
-                          path = here::here("data")){
+                          path = here::here("data","buoy")){
   
   lapply(buoy, 
          function(id){
@@ -456,7 +456,7 @@ read_raw_rtsc <- function(filename){
 #' @param ofile char, the path to save data to
 #' @return tibble of data
 fetch_buoy_rtsc= function(buoy = "B01", 
-                            path = here::here("data")){
+                            path = here::here("data","buoy")){
   
   ofile = file.path(path, paste0(buoy, "_rtsc_monthly.csv.gz"))
   tmpfile = tempfile()
@@ -481,7 +481,7 @@ fetch_buoy_rtsc= function(buoy = "B01",
 #' @return tibble of monthly met means  If more than one buoy is requested they
 #'   are bound into one tibble
 read_buoy_rtsc <- function(buoy = buoy_lut()$id, 
-                             path = here::here("data")){
+                             path = here::here("data","buoy")){
   
   lapply(buoy, 
          function(id){
@@ -559,7 +559,7 @@ read_raw_adcp <- function(filename){
 #' @param ofile char, the path to save data to
 #' @return tibble of data
 fetch_buoy_adcp= function(buoy = "B01", 
-                          path = here::here("data")){
+                          path = here::here("data","buoy")){
   
   ofile = file.path(path, paste0(buoy, "_adcp_monthly.csv.gz"))
   tmpfile = tempfile()
@@ -584,7 +584,7 @@ fetch_buoy_adcp= function(buoy = "B01",
 #' @return tibble of monthly met means  If more than one buoy is requested they
 #'   are bound into one tibble
 read_buoy_adcp <- function(buoy = buoy_lut()$id, 
-                           path = here::here("data")){
+                           path = here::here("data","buoy")){
   
   lapply(buoy, 
          function(id){
