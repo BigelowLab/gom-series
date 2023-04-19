@@ -274,7 +274,7 @@ fetch_buoy_ctd = function(buoy = "B01",
 #' @return tibble of monthly met means  If more than one buoy is requested they
 #'   are bound into one tibble
 read_buoy_ctd <- function(buoy = buoy_lut()$id, 
-                          path = here::here("data","buoy"){
+                          path = here::here("data","buoy")){
   
   lapply(buoy, 
          function(id){

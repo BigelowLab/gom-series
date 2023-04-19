@@ -17,4 +17,3 @@ PATH = here::here()
 for (f in list.files(here("functions"), pattern = "^.*\\.R$", full.names = TRUE)){
   source(f)
 }
-
