@@ -76,3 +76,9 @@ read_regions <- function(filename = "gulf_of_maine_regions.gpkg",
   }
   x
 }
+
+
+region_indices = function(x = read_regions(), 
+                          s = stars::read_stars("/mnt/ecocast/coredata/copernicus/c3s_obs-oc_glo_bgc-plankton_my_l4-multi-4km_P1M/world/2010/2010-01-01.tif")){
+  
+}
