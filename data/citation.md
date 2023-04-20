@@ -8,7 +8,7 @@
  
 ## Region boundaries from Marine Regions
  
-  + [Marine Regions] https://www.marineregions.org/gazetteer.php?p=details&id=8940
+  + [Marine Regions] (https://www.marineregions.org/gazetteer.php?p=details&id=8940)
 
 ### Chlorophyll data from CMEMS
 
