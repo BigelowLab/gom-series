@@ -600,12 +600,12 @@ read_buoy_adcp <- function(buoy = buoy_lut()$id,
 }
 
 
-#' Update buoy data for one or more datasets
+#' Fetch buoy data for one or more datasets
 #' 
 #' @param buoy char, one or more buoy id (B01, etc)
 #' @param what char, one or more datasets names
 #' @return NULL
-update_buoys <- function(buoy = buoy_lut()$id,
+fetch_buoys <- function(buoy = buoy_lut()$id,
                          what = c("met", "ctd", "rtsc", "optics", "adcp")){
   cat("updating buoys:", paste(buoy, collapse = ", "), "\n") 
   for (wh in what){

@@ -1,9 +1,12 @@
 suppressPackageStartupMessages({
   here::i_am("setup.R")
+  library(rlang)
   library(here)
+  library(R6)
   library(xml2)
   library(rerddap)
   library(sf)
+  library(stars)
   library(copernicus)
   library(ncdf4)
   library(ggplot2)
