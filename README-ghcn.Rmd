@@ -64,8 +64,6 @@ x = dplyr::ungroup(x) |>
 
 Let's look at the station data - plotting the TMIN-to-TMAX range per month range as a gray ribbon.  Superimposed are the loess smoothing lines for each epoch.
 ```{r, warning=FALSE}
-stations = unique(x$NAME)
-
 plot_envelope = function(x){
   ggplot(data = x,  aes(x = DATE, y = TMIN)) +
   geom_ribbon(aes(ymin = TMIN, ymax = TMAX), fill = 'gray50') +
@@ -81,19 +79,26 @@ plot_envelope = function(x){
   facet_wrap(~ MONTH, scales = "free_y") 
 }
 
-gg = lapply(stations, function(name) plot_envelope(dplyr::filter(x, NAME == name)))
+gg = lapply(stations$id, function(id) plot_envelope(dplyr::filter(x, STATION == id)))
 
 for (g in gg) print(g)
 ```
 
-Next we can view anomlay heat maps.
+Next we can view anomaly heat maps, but we start with the daily data.
+
+```{r}
+x = fetch_station(inv) |>
+  dplyr::filter(DATE >= DATES[1]) |>
+  dplyr::mutate(TDIFF = TMAX - TMIN, .before = geometry)
+```
 
 ```{r, fig.asp = 0.9}
-for (station in stations) {
-  plot( stsaav::stsaav(dplyr::filter(x, NAME == station),
+for (id in stations$id) {
+  name = stations$name[stations$id == id]
+  plot( stsaav::stsaav(dplyr::filter(x, STATION == id),
                                      t_step = "Month",
                                      tcol = "DATE",
                                      vcol = "TMIN"),
-        main = paste0(station, ", Monthly Mean Temp (C)"))
+        main = paste0(name, ", Monthly Mean Temp (C)"))
 }
 ```

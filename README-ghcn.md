@@ -73,8 +73,6 @@ month range as a gray ribbon. Superimposed are the loess smoothing lines
 for each epoch.
 
 ``` r
-stations = unique(x$NAME)
-
 plot_envelope = function(x){
   ggplot(data = x,  aes(x = DATE, y = TMIN)) +
   geom_ribbon(aes(ymin = TMIN, ymax = TMAX), fill = 'gray50') +
@@ -90,23 +88,30 @@ plot_envelope = function(x){
   facet_wrap(~ MONTH, scales = "free_y") 
 }
 
-gg = lapply(stations, function(name) plot_envelope(dplyr::filter(x, NAME == name)))
+gg = lapply(stations$id, function(id) plot_envelope(dplyr::filter(x, STATION == id)))
 
 for (g in gg) print(g)
 ```
 
 ![](README-ghcn_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->![](README-ghcn_files/figure-gfm/unnamed-chunk-5-2.png)<!-- -->![](README-ghcn_files/figure-gfm/unnamed-chunk-5-3.png)<!-- -->![](README-ghcn_files/figure-gfm/unnamed-chunk-5-4.png)<!-- -->![](README-ghcn_files/figure-gfm/unnamed-chunk-5-5.png)<!-- -->
 
-Next we can view anomlay heat maps.
+Next we can view anomaly heat maps, but we start with the daily data.
 
 ``` r
-for (station in stations) {
-  plot( stsaav::stsaav(dplyr::filter(x, NAME == station),
+x = fetch_station(inv) |>
+  dplyr::filter(DATE >= DATES[1]) |>
+  dplyr::mutate(TDIFF = TMAX - TMIN, .before = geometry)
+```
+
+``` r
+for (id in stations$id) {
+  name = stations$name[stations$id == id]
+  plot( stsaav::stsaav(dplyr::filter(x, STATION == id),
                                      t_step = "Month",
                                      tcol = "DATE",
                                      vcol = "TMIN"),
-        main = paste0(station, ", Monthly Mean Temp (C)"))
+        main = paste0(name, ", Monthly Mean Temp (C)"))
 }
 ```
 
-![](README-ghcn_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->![](README-ghcn_files/figure-gfm/unnamed-chunk-6-2.png)<!-- -->![](README-ghcn_files/figure-gfm/unnamed-chunk-6-3.png)<!-- -->![](README-ghcn_files/figure-gfm/unnamed-chunk-6-4.png)<!-- -->![](README-ghcn_files/figure-gfm/unnamed-chunk-6-5.png)<!-- -->
+![](README-ghcn_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->![](README-ghcn_files/figure-gfm/unnamed-chunk-7-2.png)<!-- -->![](README-ghcn_files/figure-gfm/unnamed-chunk-7-3.png)<!-- -->![](README-ghcn_files/figure-gfm/unnamed-chunk-7-4.png)<!-- -->![](README-ghcn_files/figure-gfm/unnamed-chunk-7-5.png)<!-- -->
