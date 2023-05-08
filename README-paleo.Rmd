@@ -1,0 +1,42 @@
+---
+title: "GOM-series paleo reconstructions"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, warning = FALSE, message = FALSE}
+source("setup.R")
+```
+
+### [Gulf of Maine Oxygen and Nitrogen Isotope Data From 1684 - 2013 CE](https://www.ncei.noaa.gov/access/paleo-search/study/36473)
+
+```{r}
+filename = wdspaleo::example_filename("seguin_whitney2022")
+X = WDS_paleo(filename)
+glimpse(X$data)
+```
+
+### The contents of any given data source vary... so you'll have to explore.
+
+```{r}
+ggplot(data = X$data, aes(x = year, y = d18O_avg)) + 
+  geom_point() +
+  geom_smooth(se = TRUE)
+```
+
+
+### [Gulf of Maine age corrected radiocarbon data measured in Arctica islandica shells from 1685-1986](https://www.ncdc.noaa.gov/paleo/study/31392)
+
+```{r}
+filename = wdspaleo::example_filename("lower-spies2020")
+X = WDS_paleo(filename)
+glimpse(X$data)
+```
+
+```{r}
+ggplot(data = X$data, aes(x = ScleroAge, y = FractMod)) +
+  geom_point()
+```

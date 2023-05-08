@@ -10,6 +10,7 @@ suppressPackageStartupMessages({
   library(rnaturalearth)
   library(copernicus)
   library(stsaav)
+  library(wdspaleo)
   library(ghcnd)
   library(ncdf4)
   library(ggplot2)
