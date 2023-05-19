@@ -1,0 +1,46 @@
+---
+title: "GOM-series stream guage data"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, warning = FALSE, message = FALSE}
+source("setup.R")
+```
+
+# How to access [USGS Stream Gauge data for Maine](https://waterdata.usgs.gov/me/nwis/rt) 
+
+## List stations of interest
+
+```{r}
+stations <- usgs_lut()
+stations
+```
+
+
+## Use the `readNWISdv` function from the [dataRetrieval]() package to get daily discharge values from the stations of interest
+
+The parameter code "00060" is for daily discharge values in ft^3/s
+
+```{r}
+parameterCd <- c("00060")
+
+x <- fetch_usgs_discharge(stations)
+
+x
+```
+
+
+## Take a look at how much data is available per station
+
+```{r}
+ggplot(data=x, aes(x=date, y=discharge)) +
+  geom_line() +
+  facet_grid(rows = "site_no")
+```
+
+
+
