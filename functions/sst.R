@@ -7,10 +7,7 @@ read_oisst = function(filename =  "oisst.csv.gz",
                             path = here::here("data", "sst"),
                             logscale = TRUE){
   
-  x = readr::read_csv(file.path(path[1], filename[1]),
-                      col_types = 'Dcn') |>
-    rlang::set_names(c("date", "region", "sst"))
-  x
+  readr::read_csv(file.path(path[1], filename[1]), col_types = 'Dcnnnnnn')
 }
 
 
@@ -24,7 +21,7 @@ read_oisst = function(filename =  "oisst.csv.gz",
 #' @return tibble for date, region, mean sst
 fetch_oisst <- function(x = read_regions(),
                         path = here::here("data", "sst"),
-                        progress = TRUE){
+                        progress = FALSE){
   if (FALSE){
     x = read_regions()
     path = here::here("data", "sst")
@@ -35,28 +32,51 @@ fetch_oisst <- function(x = read_regions(),
     as.vector()
   bb = bb[c(1,3,2,4)] + c(-0.1, 0.1, -0.1, 0.1)
   
-  
+  xx <- dplyr::rowwise(x) |>
+    dplyr::group_map(
+      function(x, ...){
+        sf::st_coordinates(x)[,1:2]
+      }) |>
+    rlang::set_names(x$region)
+   
   X = OISST$new()
   nav = X$get_nav(bb=bb)
   dates = X$get_time()
-  #dates = dates[1:3]
   if (progress) pb = txtProgressBar(min = 0, max = length(dates), style = 3)
   
+  # given a set of values compute the standard summary
+  fun = function(x, na.rm = TRUE){
+    m = mean(x, na.rm = TRUE)
+    r = fivenum(x, na.rm = TRUE)
+    c(r[1:3], m, r[4:5]) |>
+      rlang::set_names(c("min", "q25", "median", "mean", "q75", "max"))
+  }
+  
+  
   r = lapply(seq_along(dates),
-             function(i){
-               if (progress) setTxtProgressBar(pb, i)
-               s = stars::st_extract(X$get_var(time = i, nav = nav), x, na.rm = TRUE) |>
-                 sf::st_as_sf() |>
-                 sf::st_drop_geometry() |> 
-                 rlang::set_names("sst") |> 
-                 dplyr::mutate(date = dates[i], region = x$region, .before = 1)
-             }) |>
+    function(i){
+      if (progress) setTxtProgressBar(pb, i)
+      #pull out the stars object for this date
+      s = X$get_var(time = i, nav = nav)
+      # pull out the pixels for each region - matrix ops are faster than st_extract()
+      # call the summarizing function
+      # trabnspose and cast as tibble
+      # add in date/region info
+      m <- sapply(xx, 
+        function(x){
+          v = stars::st_extract(s, x, na.rm = TRUE)
+          fun(v[[1]])
+        }) |>
+      t() |>
+      dplyr::as_tibble(rownames = "region") |>
+      dplyr::mutate(date = dates[i], .before = 1)
+    }) |>
     dplyr::bind_rows() |>
     readr::write_csv(file.path(path, "oisst.csv.gz"))
   if (progress) close(pb)
   X$close_nc()
   r
-} # fetch_cmems_chlor
+} # fetch_oisst
 
 
 ##### R6 class below ###########################################################
@@ -74,7 +94,7 @@ OISST = R6::R6Class("OISST",
     
     initialize = function(product_id = 'sst.mon.mean.nc',
                           base_uri = 'http://psl.noaa.gov/thredds/dodsC/Datasets/noaa.oisst.v2.highres'){
-      cat("initializing: ", product_id, "\n")
+      message(sprintf("initializing: %s", product_id))
       self$product_id = product_id[1]
       self$base_uri = base_uri[1]
       self$open_nc()
