@@ -19,7 +19,7 @@ We downloaded monthly mean SST data from [OISST](https://psl.noaa.gov/data/gridd
 
 ```{r, message = FALSE}
 x <- read_oisst() |> 
-  dplyr::mutate(month = factor(format(date, "%b"), levels = month.abb)) |>
+  dplyr::mutate(month = factor(format(date, "%b"), levels = month.abb), .after = 1) |>
   dplyr::group_by(region) |>
   glimpse()
 ```
@@ -41,6 +41,34 @@ ggplot(data = georges_basin, aes(x = date, y = min)) +
   geom_line(aes(x = date, y = max)) + 
   geom_smooth(aes(x = date, y = max), method = "lm", se = FALSE, color = "orange") +
   facet_wrap(~ month)
+```
+
+
+```{r}
+name = "Georges Basin"
+plot(stsaav::stsaav(georges_basin,
+                     t_step = "Month",
+                     tcol = "date",
+                     vcol = "mean"),
+    main = paste0(name, ", Monthly Mean Temp (C)"))
+```
+
+
+### Annual Means
+
+Annual means can be computed from the various sst metrics since each month the same number of pixels are sampled for each region.
+
+Below we compute the annual means and then clip the data to just complete years (meaning drop the current year).  Then we plot the mean max and min by region.
+
+```{r}
+a <- annualize_sst(x) |>
+  dplyr::filter(year < as.numeric(format(Sys.Date(), "%Y"))-1) |>
+  dplyr::group_by(region)
+
+ggplot(data = a, aes(x = year, y = min)) + 
+  geom_line(color = "blue") +
+  geom_line(aes(y = max), color = "orange") +
+  facet_wrap(~region)
 ```
 
 

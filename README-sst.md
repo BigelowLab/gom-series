@@ -57,6 +57,17 @@ ggplot(data = georges_basin, aes(x = date, y = min)) +
 
 ![](README-sst_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
 
+``` r
+name = "Georges Basin"
+plot(stsaav::stsaav(georges_basin,
+                     t_step = "Month",
+                     tcol = "date",
+                     vcol = "mean"),
+    main = paste0(name, ", Monthly Mean Temp (C)"))
+```
+
+![](README-sst_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
+
 ### Updating the local dataset
 
 It’s easy to build or renew the local dataset.

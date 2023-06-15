@@ -1,6 +1,7 @@
 suppressPackageStartupMessages({
   here::i_am("setup.R")
   library(rlang)
+  library(httr)
   library(here)
   library(R6)
   library(xml2)

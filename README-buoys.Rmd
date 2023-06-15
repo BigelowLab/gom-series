@@ -10,9 +10,13 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r, warning = FALSE, message = FALSE}
 suppressPackageStartupMessages({
   library(cofbb)
-  library(ggOceanMaps)
 })
 source("setup.R")
+
+bb <- cofbb::get_bb("gom", form = 'sf')
+regions = read_regions()
+coast = rnaturalearth::ne_coastline(scale = "large", returnclass = 'sf') |>
+  sf::st_crop(sf::st_bbox(bb))
 ```
 
 ## Buoy data aggregated to monthly means
@@ -25,10 +29,10 @@ buoys
 ```
 
 ```{r, warning = FALSE}
-bb <- cofbb::get_bb("gom")
-basemap(limits = bb, bathymetry = TRUE) + 
-  geom_point(data = buoys, aes(x = lon, y = lat), 
-             color = "orange") +
+ggplot(data = regions) +
+  geom_sf(fill = NA) +
+  geom_sf(data = coast, color = "blue") + 
+  geom_point(data = buoys, aes(x = lon, y = lat), color = "orange") +
   geom_text(data = buoys, aes(x = lon, y = lat, 
                               label = id,
                               hjust = 0.5, 
@@ -125,6 +129,15 @@ ggplot(data = x, aes(x = date, y = chlorophyll, color = water_depth)) +
 
 
 ## ACDP at depth (water_depth, depth, current_u, current_v)
+
+
+### Fetch ACDP data
+
+ACDP data for these buoys can be fetched using `fetch_buoy_acdp()`. This function downloads high temporal resolution data per buoy at various depths, aggregates into monthly means and yearly, and saved to disk simple tables. Run this as needed to update data. Not every buoy has ADCP data.
+
+```
+adcp <- lapply(buoys$id, fetch_buoy_adcp)
+```
 
 ### Read and display ADCP data
 

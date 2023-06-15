@@ -22,7 +22,7 @@ eastern_coastal_mask = function(){
 read_regions <- function(filename = "gulf_of_maine_regions.gpkg",
                          path = here::here("data"),
                          split_coastal = TRUE,
-                         form = c("raw", "bbox", "chull"),
+                         form = c("raw", "bbox", "chull")[1],
                          keep = c("Wikinson Basin", "Jordan Basin", "Georges Basin",  
                                   "Georges Bank", "Eastern Maine Coastal Shelf", 
                                   "Western Coastal Shelf")){
@@ -75,10 +75,4 @@ read_regions <- function(filename = "gulf_of_maine_regions.gpkg",
     x <- dplyr::filter(x, region %in% keep)
   }
   x
-}
-
-
-region_indices = function(x = read_regions(), 
-                          s = stars::read_stars("/mnt/ecocast/coredata/copernicus/c3s_obs-oc_glo_bgc-plankton_my_l4-multi-4km_P1M/world/2010/2010-01-01.tif")){
-  
 }

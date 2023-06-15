@@ -1,8 +1,34 @@
-#' Read mean OISST data for each region
+#' Annualize sst values (from monthly)
+#' 
+#' @param x tibble of date, region and sst params
+#' @return annulaized tibble
+annualize_sst = function(x = read_oisst()){
+  
+  x |>
+    dplyr::mutate(year = as.numeric(format(date, "%Y")), .before = 1) |>
+    dplyr::select(-dplyr::any_of(c("date", "month", "week", "season"))) |>
+    dplyr::group_by(region, year) |>
+    dplyr::group_map(
+      function(tbl, key){
+        r = tbl |>
+          dplyr::mutate(min = mean(min),
+                        q25 = mean(q25),
+                        median = mean(median),
+                        mean = mean(mean),
+                        q75 = mean(q75),
+                        max = mean(max) )
+      }, .keep = TRUE) |>
+  dplyr::bind_rows()
+  
+}
+
+
+
+#' Read OISST data for each region
 #' 
 #' @param filename char the name of the file
 #' @param path char the path to the file
-#' @return tibble of date, region and chlor
+#' @return tibble of date, region and sst params
 read_oisst = function(filename =  "oisst.csv.gz",
                             path = here::here("data", "sst"),
                             logscale = TRUE){
@@ -43,15 +69,7 @@ fetch_oisst <- function(x = read_regions(),
   nav = X$get_nav(bb=bb)
   dates = X$get_time()
   if (progress) pb = txtProgressBar(min = 0, max = length(dates), style = 3)
-  
-  # given a set of values compute the standard summary
-  fun = function(x, na.rm = TRUE){
-    m = mean(x, na.rm = TRUE)
-    r = fivenum(x, na.rm = TRUE)
-    c(r[1:3], m, r[4:5]) |>
-      rlang::set_names(c("min", "q25", "median", "mean", "q75", "max"))
-  }
-  
+
   
   r = lapply(seq_along(dates),
     function(i){
@@ -65,7 +83,7 @@ fetch_oisst <- function(x = read_regions(),
       m <- sapply(xx, 
         function(x){
           v = stars::st_extract(s, x, na.rm = TRUE)
-          fun(v[[1]])
+          sixnum(v[[1]])
         }) |>
       t() |>
       dplyr::as_tibble(rownames = "region") |>

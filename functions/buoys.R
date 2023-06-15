@@ -1,5 +1,36 @@
 # Accessing NERACOOS buoy data
 
+#' Clip a table so that only complete intervals are present (for subsequent
+#'  aggregation).  We count unique days in the interval, even though data may
+#'  ne recorded much more frequently
+#'
+#' @param x tibble of buoy data
+#' @param by character, one of "year" (default) or "month"
+#' @param min_count numeric defaults to 364 or 365, but adjust to 28 or 29 for month
+#' @return tibble clipped to include only complete intervals
+buoy_complete_intervals = function(x, 
+  by = c("year", "month")[1], 
+  min_count = c("year" = 364, "month" = 28)[[by]]){
+  
+  fmt = switch(tolower(by[1]),
+               "year" = "%Y-01-01",
+               "month" = "%Y-%m-01")
+  dplyr::mutate(x, interval_ = format(.data$time, fmt)) |>
+    dplyr::group_by(station, interval_) |>
+    dplyr::group_map(
+      function(tbl, key){
+        n_u = length(unique(as.Date(tbl$time)))
+        if (n_u <= min_count){
+          return(NULL)
+        } else {
+          return(tbl)
+        }
+      }, .keep = TRUE) |>
+    dplyr::bind_rows() |>
+    dplyr::select(-dplyr::any_of("interval_"))
+}
+
+
 #' Returns a table of buoy metadata
 #' 
 #' @return tibble
@@ -62,6 +93,12 @@ mask_qc <- function(x, threshold = 0, suffix = "_qc", replacement = NA_real_){
 #' @param ... other argument for \code{download.file}
 #' @return 0 for success, non-zero for problems
 fetch_errdap_csv <- function(x, filename = tempfile(), ...){
+  
+  r = httr::HEAD(x)
+  if (httr::http_error(r)){
+    warning("http error for ", x)
+    return(1)
+  }
   ok <- try(download.file(x, filename, ...))
   if (inherits(ok, 'try-error')){
     print(ok)
@@ -120,20 +157,25 @@ met_query_uri = function(buoyid = "$BUOYID", escape = TRUE){
   uri
 }
 
-#' Aggregate columns by month
-#' 
-#' Add month date (first of each month)
-#' Group by month
-#' Sumamrise
+
+#' Aggregate columns by interval
 #' 
 #' @param x tibble of data
-met_aggregate_monthly = function(x){
-  dplyr::mutate(x, date = format(time, "%Y-%m-01")) |>
+#' @param by char the interval overwich to aggregate
+#' @return summary tibble
+met_aggregate = function(x, by = c("month", "year")[1]){
+  
+  if (nrow(x) == 0) return(x)
+  
+  fmt = switch(tolower(by[1]),
+               "month" = "%Y-%m-01",
+               "year" = "%Y-%01-01")
+  
+  dplyr::mutate(x, date = format(time, fmt)) |>
     dplyr::group_by(date) |>
     dplyr::summarize(dplyr::across(dplyr::where(is.numeric), ~mean(., na.rm = TRUE)))
 }
 
-#' 
 #' Read raw met data for a given buoy
 #' 
 #' @param filename char, the path to the data to read
@@ -153,29 +195,42 @@ met_read_raw <- function(filename){
 fetch_buoy_met = function(buoy = "B01", 
                          path = here::here("data","buoy")){
   
-  ofile = file.path(path, paste0(buoy, "_met_monthly.csv.gz"))
+  
   tmpfile = tempfile()
   uri = met_query_uri(buoy)
   ok <- fetch_errdap_csv(uri, tmpfile)
   if (ok > 0) return(NULL)
   
-  met_read_raw(tmpfile) |>
+  x = met_read_raw(tmpfile) |>
     mask_qc() |>
-    drop_suffix() |>
-    met_aggregate_monthly() |>
+    drop_suffix()
+  
+  yfile = file.path(path, paste0(buoy, "_met_yearly.csv.gz"))
+  y = buoy_complete_intervals(x, by = "year") |>
+    met_aggregate(by = "year") |>
     dplyr::mutate(buoy = buoy, .before = 1) |>
-    readr::write_csv(ofile)
+    readr::write_csv(yfile)
+  
+  mfile = file.path(path, paste0(buoy, "_met_monthly.csv.gz"))
+  buoy_complete_intervals(x, by = "month") |>
+    met_aggregate(by = "month") |>
+    dplyr::mutate(buoy = buoy, .before = 1) |>
+    readr::write_csv(mfile)
 }
 
-#' Read monthly met data
+#' Read met data
 #' 
 #' @param buoy char, one or more buoy id codes
 #' @param path char, the path to the data
 #' @return tibble of monthly met means  If more than one buoy is requested they
 #'   are bound into one tibble
 read_buoy_met <- function(buoy = buoy_lut()$id, 
+                          interval = c("month", "year")[1],
                           path = here::here("data","buoy")){
   
+  suffix = switch(tolower(interval[1]),
+                  "month" = "_met_monthly.csv.gz",
+                  "year" = "_met_yearly.csv.gz")
   lapply(buoy, 
          function(id){
            filename = file.path(path, paste0(id, "_met_monthly.csv.gz"))
@@ -221,17 +276,23 @@ ctd_query_uri = function(buoyid = "$BUOYID", escape = TRUE){
   uri
 }
 
-#' Aggregate columns by month
-#' 
-#' Add month date (first of each month)
-#' Group by month and depth
-#' Sumamrize with mean
+#' Aggregate columns by interval
 #' 
 #' @param x tibble of data
-ctd_aggregate_monthly = function(x){
-  dplyr::mutate(x, date = format(time, "%Y-%m-01")) |>
-    dplyr::group_by(date, depth) |>
-    dplyr::summarize(dplyr::across(dplyr::where(is.numeric), ~mean(., na.rm = TRUE)))
+#' @param by char the interval overwich to aggregate
+#' @return summary tibble
+ctd_aggregate = function(x, by = c("month", "year")[1]){
+  
+  if (nrow(x) == 0) return(x)
+  
+  fmt = switch(tolower(by[1]),
+               "month" = "%Y-%m-01",
+               "year" = "%Y-01-01")
+  
+  dplyr::mutate(x, date = format(time, fmt)) |>
+    dplyr::group_by(date) |>
+    dplyr::summarize(dplyr::across(dplyr::where(is.numeric), ~mean(., na.rm = TRUE)),
+                     .groups = "keep")
 }
 
 
@@ -245,41 +306,61 @@ ctd_read_raw <- function(filename){
     mutate(across(where(is.numeric), ~na_if(., NaN)))
 }
 
-#' Fetch met data for a given buoy
+#' Fetch met data for a given buoy - saves monthly and yearly aggregates
 #' 
 #' @param buoy char, the buoy id
 #' @param ofile char, the path to save data to
-#' @return tibble of data
+#' @return tibble of data (monthly aggregate)
 fetch_buoy_ctd = function(buoy = "B01", 
                           path = here::here("data","buoy")){
   
-  ofile = file.path(path, paste0(buoy, "_ctd_monthly.csv.gz"))
+  mfile = file.path(path, paste0(buoy, "_ctd_monthly.csv.gz"))
+  yfile = file.path(path, paste0(buoy, "_ctd_monthly.csv.gz"))
+  
   tmpfile = tempfile()
   uri = ctd_query_uri(buoy)
   ok <- fetch_errdap_csv(uri, tmpfile)
   if (ok > 0) return(NULL)
-  ctd_read_raw(tmpfile) |>
+  
+  r = ctd_read_raw(tmpfile) |>
     mask_qc() |>
-    drop_suffix() |>
-    ctd_aggregate_monthly() |>
+    drop_suffix()
+  
+  y = buoy_complete_intervals(r, by = "year")  |>
+    ctd_aggregate(by = "month") |>
     dplyr::mutate(buoy = buoy, .before = 1) |>
-    readr::write_csv(ofile)
+    readr::write_csv(yfile)
+  
+  buoy_complete_intervals(r, by = "month")|>
+    ctd_aggregate(by = "month") |>
+    dplyr::mutate(buoy = buoy, .before = 1) |>
+    readr::write_csv(mfile)
 }
   
 
 #' Read monthly ctd data
 #' 
 #' @param buoy char, one or more buoy id codes
+#' @param interval cahr the interval aggregate to read
 #' @param path char, the path to the data
 #' @return tibble of monthly met means  If more than one buoy is requested they
 #'   are bound into one tibble
 read_buoy_ctd <- function(buoy = buoy_lut()$id, 
+                          interval = c("month", "year")[1],
                           path = here::here("data","buoy")){
   
+  suffix = switch(tolower(interval[1]),
+                  "month" = "_ctd_monthly.csv.gz",
+                  "year" = "_ctd_yearly.csv.gz")
   lapply(buoy, 
          function(id){
-           filename = file.path(path, paste0(id, "_ctd_monthly.csv.gz"))
-           readr::read_csv(filename, show_col_types = FALSE)
+           filename = file.path(path, paste0(id, suffix))
+           if (file.exists(filename)){
+             r = readr::read_csv(filename, show_col_types = FALSE)
+           } else {
+             r = NULL
+           }
+           r
          }) |>
     dplyr::bind_rows()
   
@@ -320,17 +401,20 @@ query_uri_optics = function(buoyid = "$BUOYID", escape = TRUE){
   uri
 }
 
-#' Aggregate columns by month
-#' 
-#' Add month date (first of each month)
-#' Group by month and depth
-#' Sumamrize with mean
-#' 
+#' Aggregate optics by the user specifed interval
 #' @param x tibble of data
-aggregate_monthly_optics = function(x){
-  dplyr::mutate(x, date = format(time, "%Y-%m-01")) |>
+#' @param by cahr the interval over which to aggregate
+#' @return aggregated pixel
+aggregate_optics = function(x, by = c("month", "year")[1]){
+  
+  fmt = switch(tolower(by[1]),
+               "month" = "%Y-%m-01",
+               "year" = "%Y-01-01")
+  
+  dplyr::mutate(x, date = format(time, fmt)) |>
     dplyr::group_by(date, water_depth) |>
-    dplyr::summarize(dplyr::across(dplyr::where(is.numeric), ~mean(., na.rm = TRUE)))
+    dplyr::summarize(dplyr::across(dplyr::where(is.numeric), ~mean(., na.rm = TRUE)),
+                     .groups = "keep")
 }
 
 
@@ -344,27 +428,35 @@ read_raw_optics <- function(filename){
     mutate(across(where(is.numeric), ~na_if(., NaN)))
 }
 
-#' Fetch met data for a given buoy
+#' Fetch met data for a given buoy (aggregates by year and month)
 #' 
 #' @param buoy char, the buoy id
 #' @param ofile char, the path to save data to
-#' @return tibble of data
+#' @return tibble of data (monthly)
 fetch_buoy_optics= function(buoy = "B01", 
-                          path = here::here("data","buoy")){
-  
-  ofile = file.path(path, paste0(buoy, "_optics_monthly.csv.gz"))
+                            path = here::here("data","buoy")){
+
+  mfile = file.path(path, paste0(buoy, "_optics_monthly.csv.gz"))
+  yfile = file.path(path, paste0(buoy, "_optics_yearly.csv.gz"))
   tmpfile = tempfile()
+  
   uri = query_uri_optics(buoy)
   ok <- fetch_errdap_csv(uri, tmpfile)
   if (ok > 0) return(NULL)
+  
   r = read_raw_optics(tmpfile) |>
     mask_qc() |>
-    drop_suffix() |>
-    aggregate_monthly_optics() |>
+    drop_suffix()
+  
+  y = buoy_complete_intervals(r, by = "year") |>
+    aggregate_optics(by = "year") |>
     dplyr::mutate(buoy = buoy, .before = 1) |>
-    readr::write_csv(ofile)
+    readr::write_csv(yfile)
 
-  r
+  buoy_complete_intervals(r, by = "month") |>
+    aggregate_optics(by = "month") |>
+      dplyr::mutate(buoy = buoy, .before = 1) |>
+      readr::write_csv(mfile)
 }
 
 
@@ -375,13 +467,18 @@ fetch_buoy_optics= function(buoy = "B01",
 #' @return tibble of monthly met means  If more than one buoy is requested they
 #'   are bound into one tibble
 read_buoy_optics <- function(buoy = buoy_lut()$id, 
+                             interval = c("month", "year")[1],
                           path = here::here("data","buoy")){
+  
+  suffix = switch(tolower(interval[1]),
+                  "month" = "_optics_monthly.csv.gz",
+                  "year" = "_optics_yearly.csv.gz")
   
   lapply(buoy, 
          function(id){
-           filename = file.path(path, paste0(id, "_optics_monthly.csv.gz"))
+           filename = file.path(path, paste0(id, suffix))
            x <- if (file.exists(filename)){
-            readr::read_csv(filename, show_col_types = FALSE)
+             readr::read_csv(filename, show_col_types = FALSE)
            } else {
              NULL
            }
@@ -425,17 +522,23 @@ query_uri_rtsc = function(buoyid = "$BUOYID", escape = TRUE){
   uri
 }
 
-#' Aggregate columns by month
-#' 
-#' Add month date (first of each month)
-#' Group by month and depth
-#' Sumamrize with mean
-#' 
+#' Aggregate columns by by the interval specified by user
+#'  
 #' @param x tibble of data
-aggregate_monthly_rtsc = function(x){
-  dplyr::mutate(x, date = format(time, "%Y-%m-01")) |>
+#' @param by char the interval over which to aggregate
+#' @return aggregated tibble
+aggregate_rtsc = function(x, by = c('year', 'month')[2]){
+  
+  if (nrow(x) == 0) return(x)
+  
+  fmt = switch(tolower(by[1]),
+               "month" = "%Y-%m-01",
+               "year" = "%Y-01-01")
+  
+  dplyr::mutate(x, date = format(time, fmt)) |>
     dplyr::group_by(date, depth) |>
-    dplyr::summarize(dplyr::across(dplyr::where(is.numeric), ~mean(., na.rm = TRUE)))
+    dplyr::summarize(dplyr::across(dplyr::where(is.numeric), ~mean(., na.rm = TRUE)),
+                     .groups = "keep")
 }
 
 
@@ -458,19 +561,26 @@ read_raw_rtsc <- function(filename){
 fetch_buoy_rtsc= function(buoy = "B01", 
                             path = here::here("data","buoy")){
   
-  ofile = file.path(path, paste0(buoy, "_rtsc_monthly.csv.gz"))
+  mfile = file.path(path, paste0(buoy, "_rtsc_monthly.csv.gz"))
+  yfile = file.path(path, paste0(buoy, "_rtsc_yearly.csv.gz"))
+  
   tmpfile = tempfile()
   uri = query_uri_rtsc(buoy)
   ok <- fetch_errdap_csv(uri, tmpfile)
   if (ok > 0) return(NULL)
-  r = read_raw_rtsc(tmpfile) |>
+  x = read_raw_rtsc(tmpfile) |>
     mask_qc() |>
-    drop_suffix() |>
-    aggregate_monthly_rtsc() |>
-    dplyr::mutate(buoy = buoy, .before = 1) |>
-    readr::write_csv(ofile)
+    drop_suffix() 
 
-  r
+  y = buoy_complete_intervals(x, by = "year") |>  
+    aggregate_rtsc(by = 'year') |>
+    dplyr::mutate(buoy = buoy, .before = 1) |>
+    readr::write_csv(yfile)
+
+  buoy_complete_intervals(x, by = "month") |>  
+    aggregate_rtsc(by = 'month') |>
+    dplyr::mutate(buoy = buoy, .before = 1) |>
+    readr::write_csv(mfile)
 }
 
 
@@ -481,11 +591,15 @@ fetch_buoy_rtsc= function(buoy = "B01",
 #' @return tibble of monthly met means  If more than one buoy is requested they
 #'   are bound into one tibble
 read_buoy_rtsc <- function(buoy = buoy_lut()$id, 
-                             path = here::here("data","buoy")){
+                           interval = c("month", "year")[1],
+                           path = here::here("data","buoy")){
   
+  suffix = switch(tolower(interval[1]),
+                  "month" = "_rtsc_monthly.csv.gz",
+                  "year" = "_rtsc_yearly.csv.gz")
   lapply(buoy, 
          function(id){
-           filename = file.path(path, paste0(id, "_rtsc_monthly.csv.gz"))
+           filename = file.path(path, paste0(id, suffix))
            x <- if (file.exists(filename)){
              readr::read_csv(filename, show_col_types = FALSE)
            } else {
@@ -496,10 +610,10 @@ read_buoy_rtsc <- function(buoy = buoy_lut()$id,
   
 }
 
+#########
 # adcp
-# 
+#########
 
-#
 query_uri_adcp = function(buoyid = "$BUOYID", escape = TRUE){
   
   # http://www.neracoos.org/erddap/tabledap/B01_doppler_rt.csv?station%2Cwater_depth%2Ctime%2Cdepth%2Coffset_time%2Ccurrent_u%2Ccurrent_u_qc%2Ccurrent_v%2Ccurrent_v_qc&time%3E=2023-04-11T00%3A00%3A00Z&time%3C=2023-04-18T11%3A00%3A00Z
@@ -527,17 +641,23 @@ query_uri_adcp = function(buoyid = "$BUOYID", escape = TRUE){
   uri
 }
 
-#' Aggregate columns by month
-#' 
-#' Add month date (first of each month)
-#' Group by month and depth
-#' Sumamrize with mean
-#' 
+#' Aggregate columns by by the interval specified by user
+#'  
 #' @param x tibble of data
-aggregate_monthly_adcp = function(x){
-  dplyr::mutate(x, date = format(time, "%Y-%m-01")) |>
+#' @param by char the interval over which to aggregate
+#' @return aggregated tibble
+aggregate_adcp = function(x, by = c("month", "year")[1]){
+
+  if (nrow(x) == 0) return(x)
+  
+  fmt = switch(tolower(by[1]),
+               "month" = "%Y-%m-01",
+               "year" = "%Y-01-01")  
+  
+  dplyr::mutate(x, date = format(time, fmt)) |>
     dplyr::group_by(date, water_depth) |>
-    dplyr::summarize(dplyr::across(dplyr::where(is.numeric), ~mean(., na.rm = TRUE)))
+    dplyr::summarize(dplyr::across(dplyr::where(is.numeric), ~mean(., na.rm = TRUE)),
+                     .groups = "keep")
 }
 
 
@@ -561,34 +681,49 @@ read_raw_adcp <- function(filename){
 fetch_buoy_adcp= function(buoy = "B01", 
                           path = here::here("data","buoy")){
   
-  ofile = file.path(path, paste0(buoy, "_adcp_monthly.csv.gz"))
+  mfile = file.path(path, paste0(buoy, "_adcp_monthly.csv.gz"))
+  yfile = file.path(path, paste0(buoy, "_adcp_yearly.csv.gz"))
   tmpfile = tempfile()
+  
   uri = query_uri_adcp(buoy)
   ok <- fetch_errdap_csv(uri, tmpfile)
-  if (ok > 0) return(NULL)
-  r = read_raw_adcp(tmpfile) |>
+  if (ok != 0) return(NULL)
+  
+  x = read_raw_adcp(tmpfile) |>
     mask_qc() |>
-    drop_suffix() |>
-    aggregate_monthly_adcp() |>
+    drop_suffix()
+  
+  y = buoy_complete_intervals(x, by = "year") |>  
+    aggregate_adcp(by = 'year') |>
     dplyr::mutate(buoy = buoy, .before = 1) |>
-    readr::write_csv(ofile)
+    readr::write_csv(yfile)
+  
+  buoy_complete_intervals(x, by = "month") |>  
+    aggregate_adcp(by = 'month') |>
+    dplyr::mutate(buoy = buoy, .before = 1) |>
+    readr::write_csv(mfile)
 
-  r
+  x
 }
 
 
 #' Read monthly adcp data
 #' 
 #' @param buoy char, one or more buoy id codes
+#' @param interval char, one of "month" (default) or "year"
 #' @param path char, the path to the data
 #' @return tibble of monthly met means  If more than one buoy is requested they
 #'   are bound into one tibble
 read_buoy_adcp <- function(buoy = buoy_lut()$id, 
+                           interval = c("month", "year")[1],
                            path = here::here("data","buoy")){
   
+  suffix = switch(tolower(interval[1]),
+                  "month" =  "_adcp_monthly.csv.gz",
+                  "year" =  "_adcp_yearly.csv.gz")
   lapply(buoy, 
          function(id){
-           filename = file.path(path, paste0(id, "_adcp_monthly.csv.gz"))
+           filename = file.path(path, paste0(id, suffix))
            x <- if (file.exists(filename)){
              readr::read_csv(filename, show_col_types = FALSE)
            } else {
@@ -599,6 +734,9 @@ read_buoy_adcp <- function(buoy = buoy_lut()$id,
   
 }
 
+
+
+### Fetching all
 
 #' Fetch buoy data for one or more datasets
 #' 

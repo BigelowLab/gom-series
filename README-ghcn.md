@@ -1,8 +1,8 @@
 GOM-series GHCN daily
 ================
 
-CANADA \# <https://climatedata.ca/download/#station-download>
-<https://api.weather.gc.ca/collections/climate-daily/items?datetime=1840-03-01%2000:00:00/2023-05-02%2000:00:00&STN_ID=6244&sortby=PROVINCE_CODE,STN_ID,LOCAL_DATE&f=csv&limit=150000&startindex=0>
+> For Canadian data see [ClimateData](https://climatedata.ca) and the
+> [inventory](https://climatedata.ca/download/#station-download).
 
 ``` r
 source("setup.R")
@@ -62,6 +62,11 @@ x = fetch_station(inv) |>
   aggregate_monthly() |>
   dplyr::filter(DATE >= DATES[1]) |>
   dplyr::mutate(TDIFF = TMAX - TMIN, .before = geometry)
+```
+
+    ## unable to connect to https://www.ncei.noaa.gov/data/global-historical-climatology-network-daily/access/USC00171628.csv
+
+``` r
 ix <- findInterval(x$DATE, DATES)
 x = dplyr::ungroup(x) |>
   dplyr::mutate(EPOCH = factor(as.character(sort(unique(ix)))[ix]), .after = DATE) |>
@@ -88,12 +93,12 @@ plot_envelope = function(x){
   facet_wrap(~ MONTH, scales = "free_y") 
 }
 
-gg = lapply(stations$id, function(id) plot_envelope(dplyr::filter(x, STATION == id)))
+gg = lapply(unique(x$STATION), function(id) plot_envelope(dplyr::filter(x, STATION == id)))
 
 for (g in gg) print(g)
 ```
 
-![](README-ghcn_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->![](README-ghcn_files/figure-gfm/unnamed-chunk-5-2.png)<!-- -->![](README-ghcn_files/figure-gfm/unnamed-chunk-5-3.png)<!-- -->![](README-ghcn_files/figure-gfm/unnamed-chunk-5-4.png)<!-- -->![](README-ghcn_files/figure-gfm/unnamed-chunk-5-5.png)<!-- -->
+![](README-ghcn_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->![](README-ghcn_files/figure-gfm/unnamed-chunk-5-2.png)<!-- -->![](README-ghcn_files/figure-gfm/unnamed-chunk-5-3.png)<!-- -->![](README-ghcn_files/figure-gfm/unnamed-chunk-5-4.png)<!-- -->
 
 Next we can view anomaly heat maps, but we start with the daily data.
 
@@ -103,8 +108,10 @@ x = fetch_station(inv) |>
   dplyr::mutate(TDIFF = TMAX - TMIN, .before = geometry)
 ```
 
+    ## unable to connect to https://www.ncei.noaa.gov/data/global-historical-climatology-network-daily/access/USC00171628.csv
+
 ``` r
-for (id in stations$id) {
+for (id in unique(x$STATION)) {
   name = stations$name[stations$id == id]
   plot( stsaav::stsaav(dplyr::filter(x, STATION == id),
                                      t_step = "Month",
@@ -114,4 +121,21 @@ for (id in stations$id) {
 }
 ```
 
-![](README-ghcn_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->![](README-ghcn_files/figure-gfm/unnamed-chunk-7-2.png)<!-- -->![](README-ghcn_files/figure-gfm/unnamed-chunk-7-3.png)<!-- -->![](README-ghcn_files/figure-gfm/unnamed-chunk-7-4.png)<!-- -->![](README-ghcn_files/figure-gfm/unnamed-chunk-7-5.png)<!-- -->
+![](README-ghcn_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->![](README-ghcn_files/figure-gfm/unnamed-chunk-7-2.png)<!-- -->![](README-ghcn_files/figure-gfm/unnamed-chunk-7-3.png)<!-- -->![](README-ghcn_files/figure-gfm/unnamed-chunk-7-4.png)<!-- -->
+
+An alternative is to compute annual means *for complete years only*.
+
+``` r
+a = fetch_station(inv) |>
+  ghcnd::aggregate_annual()
+```
+
+    ## unable to connect to https://www.ncei.noaa.gov/data/global-historical-climatology-network-daily/access/USC00171628.csv
+
+``` r
+ggplot(data = a, aes(x = YEAR, y= PRCP)) + 
+  geom_line() + 
+  facet_wrap(~NAME)
+```
+
+![](README-ghcn_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
