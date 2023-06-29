@@ -2,9 +2,10 @@
 #' 
 #' @param x tibble of date, region and sst params
 #' @return annulaized tibble
-annualize_sst = function(x = read_oisst()){
+annualize_oisst = function(x = read_oisst()){
   
   x |>
+    oisst_complete_intervals() |>
     dplyr::mutate(year = as.numeric(format(date, "%Y")), .before = 1) |>
     dplyr::select(-dplyr::any_of(c("date", "month", "week", "season"))) |>
     dplyr::group_by(region, year) |>
@@ -22,6 +23,28 @@ annualize_sst = function(x = read_oisst()){
   
 }
 
+#' Clip a table so that only complete intervals are present (for subsequent
+#'  aggregation).  
+#'
+#' @param x tibble of oisst data
+#' @return tibble clipped to include only complete intervals
+oisst_complete_intervals = function(x = read_oisst()){
+
+  min_count = 12 # 12/year to be complete
+  
+  dplyr::mutate(x, interval_ = format(.data$date, "%Y-01-01")) |>
+    dplyr::group_by(region, interval_) |>
+    dplyr::group_map(
+      function(tbl, key){
+        if (nrow(tbl) < min_count){
+          return(NULL)
+        } else {
+          return(tbl)
+        }
+      }, .keep = TRUE) |>
+    dplyr::bind_rows() |>
+    dplyr::select(-dplyr::any_of("interval_"))
+}
 
 
 #' Read OISST data for each region
@@ -30,8 +53,7 @@ annualize_sst = function(x = read_oisst()){
 #' @param path char the path to the file
 #' @return tibble of date, region and sst params
 read_oisst = function(filename =  "oisst.csv.gz",
-                            path = here::here("data", "sst"),
-                            logscale = TRUE){
+                            path = here::here("data", "sst")){
   
   readr::read_csv(file.path(path[1], filename[1]), col_types = 'Dcnnnnnn')
 }

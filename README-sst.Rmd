@@ -43,6 +43,7 @@ ggplot(data = georges_basin, aes(x = date, y = min)) +
   facet_wrap(~ month)
 ```
 
+Another monthly analysis plot.
 
 ```{r}
 name = "Georges Basin"
@@ -56,12 +57,12 @@ plot(stsaav::stsaav(georges_basin,
 
 ### Annual Means
 
-Annual means can be computed from the various sst metrics since each month the same number of pixels are sampled for each region.
+Annual means can be computed from the various sst metrics since each month has the same number of pixels are sampled for each region.
 
 Below we compute the annual means and then clip the data to just complete years (meaning drop the current year).  Then we plot the mean max and min by region.
 
 ```{r}
-a <- annualize_sst(x) |>
+a <- annualize_oisst(x) |>
   dplyr::filter(year < as.numeric(format(Sys.Date(), "%Y"))-1) |>
   dplyr::group_by(region)
 

@@ -15,6 +15,7 @@ suppressPackageStartupMessages({
   library(ghcnd)
   library(ncdf4)
   library(ggplot2)
+  library(scales)
   library(tidyr)
   library(readr)
   library(dplyr)

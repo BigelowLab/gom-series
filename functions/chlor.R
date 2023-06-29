@@ -1,4 +1,56 @@
-#' Read mean chlorophyll data from CMEMS
+#' Annualize chlor values (from monthly)
+#' 
+#' @param x tibble of date, region and params
+#' @return annualized tibble
+annualize_chlor_cmems = function(x = read_chlor_cmems()){
+  
+  x |>
+    chlor_cmems_complete_intervals() |>
+    dplyr::mutate(year = as.numeric(format(date, "%Y")), .before = 1) |>
+    dplyr::select(-dplyr::any_of(c("date", "month", "week", "season"))) |>
+    dplyr::group_by(region, year) |>
+    dplyr::group_map(
+      function(tbl, key){
+        
+        dplyr::reframe(tbl,
+                       min = mean(min),
+                       q25 = mean(q25),
+                       median = mean(median),
+                       mean = mean(mean),
+                       q75 = mean(q75),
+                       max = mean(max),
+                       .by = dplyr::all_of(c("year", "region")))
+       
+      }, .keep = TRUE) |>
+    dplyr::bind_rows()
+  
+}
+
+#' Clip a table so that only complete intervals are present (for subsequent
+#'  aggregation).  
+#'
+#' @param x tibble of chlor_cmems data
+#' @return tibble clipped to include only complete intervals
+chlor_cmems_complete_intervals = function(x = read_chlor_cmems()){
+  
+  min_count = 12 # 12/year to be complete
+  
+  dplyr::mutate(x, interval_ = format(.data$date, "%Y-01-01")) |>
+    dplyr::group_by(region, interval_) |>
+    dplyr::group_map(
+      function(tbl, key){
+        if (nrow(tbl) < min_count){
+          return(NULL)
+        } else {
+          return(tbl)
+        }
+      }, .keep = TRUE) |>
+    dplyr::bind_rows() |>
+    dplyr::select(-dplyr::any_of("interval_"))
+}
+
+
+#' Read chlorophyll data from CMEMS
 #' 
 #' @param filename char the name of the file
 #' @param path char the path to the file
@@ -9,8 +61,8 @@ read_chlor_cmems = function(filename =  "chlor_cmems.csv.gz",
                             logscale = TRUE){
   
   x = readr::read_csv(file.path(path[1], filename[1]),
-                      col_types = 'Dcn')
-  if (logscale) x = dplyr::mutate(x, chlor = log10(chlor))
+                      col_types = 'Dcnnnnnn')
+  if (logscale) x = dplyr::mutate_if(x, is.numeric, log10)
   x
 }
 
@@ -57,7 +109,7 @@ chlor_cmems_extract_regions <- function(x = read_regions(),
 #' @param path the output path
 #' @param progress logical, if TRUE then show a progress bar
 #' @return tibble for date, region, mean chlorophyll
-fetch_cmems_chlor <- function(x = read_regions(),
+fetch_chlor_cmems <- function(x = read_regions(),
                               path = here::here("data", "chlor"),
                               progress = TRUE){
   
@@ -67,6 +119,12 @@ fetch_cmems_chlor <- function(x = read_regions(),
     as.vector()
   bb = bb[c(1,3,2,4)] + c(-0.1, 0.1, -0.1, 0.1)
   
+  xx <- dplyr::rowwise(x) |>
+    dplyr::group_map(
+      function(x, ...){
+        sf::st_coordinates(x)[,1:2]
+      }) |>
+    rlang::set_names(x$region)
      
   X = CMEMS_CHLOR$new()
   nav = X$get_nav(bb=bb)
@@ -78,11 +136,26 @@ fetch_cmems_chlor <- function(x = read_regions(),
   r = lapply(seq_along(dates),
     function(i){
       if (progress) setTxtProgressBar(pb, i)
-      s = stars::st_extract(X$get_var(time = i, nav = nav), x, na.rm = TRUE) |>
-        sf::st_as_sf() |>
-        sf::st_drop_geometry() |> 
-        rlang::set_names("chlor") |> 
-        dplyr::mutate(date = dates[i], region = x$region, .before = 1)
+      
+      # pull out the pixels for each region - matrix ops are faster than st_extract()
+      # call the summarizing function
+      # transpose and cast as tibble
+      # add in date/region info
+      s = X$get_var(time = i, nav = nav)
+      m <- sapply(xx, 
+                  function(x){
+                    v = stars::st_extract(s, x, na.rm = TRUE)
+                    sixnum(v[[1]])
+                  }) |>
+        t() |>
+        dplyr::as_tibble(rownames = "region") |>
+        dplyr::mutate(date = dates[i], .before = 1)
+      
+      #s = stars::st_extract(X$get_var(time = i, nav = nav), x, na.rm = TRUE) |>
+      #  sf::st_as_sf() |>
+      #  sf::st_drop_geometry() |> 
+      #  rlang::set_names("chlor") |> 
+      #  dplyr::mutate(date = dates[i], region = x$region, .before = 1)
     }) |>
     dplyr::bind_rows() |>
     readr::write_csv(file.path(path, "chlor_cmems.csv.gz"))
@@ -91,12 +164,6 @@ fetch_cmems_chlor <- function(x = read_regions(),
   r
 } # fetch_cmems_chlor
   
-
-
-
-
-
-
 
 
 ##### R6 class below ###########################################################
@@ -170,36 +237,46 @@ CMEMS_CHLOR = R6::R6Class("CMEMS_CHLOR",
     
     get_time = function(klass = c("Date", "POSIXct")[2]){
       # pretty weak ...
+      # @param x ncdf4 object
+      # @return format string
       guess_format = function(x){
-        if (grep("1970-01-01 00:00:00", x$dim$time$units, fixed = TRUE)){
+        if (grepl("1970-01-01 00:00:00", x$dim$time$units, fixed = TRUE)){
           f = sub("1970-01-01 00:00:00", "%Y-%m-%d %H:%M:%S", x$dim$time$units, fixed = TRUE)
+        } else if(grepl("1970-01-01", x$dim$time$units, fixed = TRUE)){
+          f = sub("1970-01-01", "%Y-%m-%d", x$dim$time$units, fixed = TRUE)
         }
         f
       }
+      
       # scaling for time
+      # @param x ncdf4 object
+      # @return numeric multiplier
       guess_scale = function(x){
-        u = strsplit(self$NC$dim$time$units, " ", fixed = TRUE)[[1]][1]
+        u = strsplit(x$dim$time$units, " ", fixed = TRUE)[[1]][1]
         switch(tolower(u),
                'seconds' = 1,
                'minutes' = 60,
                'hours' = 3600)
       }
       
+      
       origin = as.POSIXct(self$NC$dim$time$units,
                            format = guess_format(self$NC),
                            tz = 'UTC')
-      time = origin + (guess_scale(x) * self$NC$dim$time$vals)
+      time = origin + (guess_scale(self$NC) * self$NC$dim$time$vals)
       if (tolower(klass[1]) == "date") time = as.Date(time)
       return(time)
     }, # get_time
     
 
     get_nav = function(bb = c(-180, 180,-90, 90), varid = "CHL"){
+      
       stopifnot(varid %in% names(self$NC$var))
       res = self$get_res()
       r2 = res/2
       lon = self$get_lon()
       lat = self$get_lat()
+      
       closest_index = function(x, vec){
         which.min(abs(vec-x))
       } 
