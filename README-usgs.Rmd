@@ -26,10 +26,7 @@ stations
 The parameter code "00060" is for daily discharge values in ft^3/s
 
 ```{r}
-parameterCd <- c("00060")
-
-x <- fetch_usgs_discharge(stations)
-
+x <- fetch_usgs(stations, parameter = "00060")
 x
 ```
 
@@ -42,5 +39,54 @@ ggplot(data=x, aes(x=date, y=discharge)) +
   facet_grid(rows = "site_no")
 ```
 
+### Aggregate into monthly intervals
 
 
+Here we select one station, "Androscoggin River near Auburn, Maine", and display the min and max monthly discharge.  Note that we have a selection of 6 metrics summarizing each month.
+
+```{r}
+andro_month = usgs_aggregate(x, by = "month") |>
+  dplyr::mutate(month = format(date, "%b")) |>
+  dplyr::filter(site_no == "01059000") |>
+  dplyr::glimpse()
+```
+
+For the display we logscale to help reveal the "texture" of the minimum flow rate.
+
+```{r}
+ggplot(data = andro_month, aes(x = date, y = min)) +
+  labs(y = "min and max log10(discharge)", title = "Androscoggin River near Auburn, Maine") + 
+  geom_line(color = "blue", linewidth = 0.5) + 
+  geom_smooth(method = "lm", se = FALSE) +
+  geom_line(aes(x = date, y = max), color = "orange", linewidth = 0.5) + 
+  geom_smooth(aes(x = date, y = max), method = "lm", se = FALSE, color = "orange") +
+  scale_y_log10() + 
+  scale_x_date(
+    NULL,
+    breaks = scales::breaks_width("25 years"),
+    labels = scales::label_date("'%y")) + 
+  facet_wrap(~ month)
+```
+
+We can compute the same for annual summaries.
+
+```{r}
+andro_year = usgs_aggregate(x, by = "year") |>
+  dplyr::filter(site_no == "01059000") |>
+  dplyr::glimpse()
+```
+
+```{r}
+ggplot(data = andro_year, aes(x = date, y = q25)) + 
+  geom_line(color = "blue", linewidth = 0.5) + 
+  geom_smooth(method = "lm", se = FALSE) +
+  geom_line(aes(y = q75), color = "orange") +
+  geom_smooth(aes(x = date, y = q75), method = "lm", se = FALSE, color = "orange") +
+  scale_x_date(
+    NULL,
+    breaks = scales::breaks_width("5 years"),
+    labels = scales::label_date("'%y")) + 
+  labs(y = "First and Third quartiles log10(discharge)",
+       title = "Androscoggin River near Auburn, Maine") + 
+  facet_wrap(~site_no)
+```

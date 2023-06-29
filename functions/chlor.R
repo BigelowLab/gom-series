@@ -11,7 +11,6 @@ annualize_chlor_cmems = function(x = read_chlor_cmems()){
     dplyr::group_by(region, year) |>
     dplyr::group_map(
       function(tbl, key){
-        
         dplyr::reframe(tbl,
                        min = mean(min),
                        q25 = mean(q25),
