@@ -1,0 +1,61 @@
+---
+title: "GOM-series NOAA Interannual Climate Indices"
+output: github_document
+---
+
+[NOAA Interannual Climate Indices](https://psl.noaa.gov/data/climateindices/list/)
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, warning = FALSE, message = FALSE}
+source("setup.R")
+```
+
+
+
+## Atlantic Multidecadal Oscillation (AMO) Index - long version
+
+Enfield, D.B., A. M. Mestas-Nunez and P.J. Trimble, 2001: The Atlantic multidecadal oscillation and it's relation to rainfall and river flows in the continental U.S.. Geophysical Research Letters, Vol. 28, 2077-2080.
+
+```{r}
+amo_wide <- fetch_amo(form="wide") |>
+  glimpse()
+```
+
+```{r}
+amo_long <- fetch_amo(form = "long") |>
+  glimpse()
+```
+
+```{r}
+ggplot(amo_long, aes(x=date, y=amo)) +
+  geom_line()
+```
+
+
+## North Atlantic Oscillation (NAO) Index
+
+Hurrell, J.W., 1995: Decadal trends in the North Atlantic Oscillation and relationships to regional temperature and precipitation. Science 269, 676-679.
+
+Jones, P.D., Jónsson, T. and Wheeler, D., 1997: Extension to the North Atlantic Oscillation using early instrumental pressure observations from Gibraltar and South-West Iceland. Int. J. Climatol. 17, 1433-1450.
+
+
+```{r}
+fetch_nao(form="wide") |>
+  glimpse()
+```
+
+```{r}
+nao_long <- fetch_nao(form = "long") |>
+  glimpse()
+```
+
+
+```{r}
+ggplot(nao_long, aes(x=date, y=nao)) +
+  geom_line()
+```
+
+
