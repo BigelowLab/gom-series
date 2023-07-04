@@ -33,6 +33,7 @@ buoy_complete_intervals = function(x,
 
 #' Returns a table of buoy metadata
 #' 
+#' @param filename the name of the file to read
 #' @return tibble
 buoy_lut = function(filename = here::here("data","buoy", "buoy_listing.csv")){
   readr::read_csv(filename, show_col_types = FALSE)
