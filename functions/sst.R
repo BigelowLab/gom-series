@@ -23,16 +23,75 @@ annualize_oisst = function(x = read_oisst()){
   
 }
 
+
+
+#' Aggregate OISST daily data by month or year
+#'
+#' @param x table of USGS daily data for one or more sites (identified by site_no)
+#' @param by string, the interbval over which to aggregate - one of month or year although
+#'   OISST comes natively as monthly aggregations.  So this really only handles by 
+#'   year.
+#' @return tibble with aggregate stats 
+aggregate_oisst = function(x = fetch_oisst(),
+                          by = c("month", "year")[2]){
+  if (tolower(by[1]) == 'month'){
+    message("oisst comes as monthly aggregation - returning input")
+    return(x)
+  }
+  
+  if (nrow(x) == 0) return(x)
+  fmt = switch(tolower(by[1]),
+               "year" = "%Y-01-01",
+               "month" = "%Y-%m-01")
+  x |>
+    oisst_complete_intervals(by=by) |>
+    dplyr::mutate(interval_ = format(.data$date, fmt) |> as.Date(), .before = 1) |>
+    dplyr::select(-dplyr::any_of(c("date", "year", "month", "week", "season"))) |>
+    dplyr::group_by(region, interval_) |>
+    dplyr::group_map(
+      function(tbl, key, parameters = c("min", "median", "mean", "max")){
+        v = sapply(parameters,
+          function(p){
+            vals = tbl |> 
+              dplyr::pull(p) |> 
+              sixnum()
+            vals[[p]]
+          }, simplify = FALSE) |>
+          dplyr::as_tibble()
+        dplyr::select(tbl, dplyr::all_of(c("interval_", "region"))) |>
+          dplyr::slice(1) |>
+          dplyr::bind_cols(v)
+      }, .keep = TRUE) |>
+    dplyr::bind_rows() |>
+    dplyr::rename(date = "interval_")
+}
+
+
 #' Clip a table so that only complete intervals are present (for subsequent
 #'  aggregation).  
 #'
 #' @param x tibble of oisst data
+#' @param by string, the interbval over which to aggregate - one of month or year although
+#'   OISST comes natively as monthly aggregations.  So this really only handles by 
+#'   year.
+#' @param min_count numeric defaults to 12 for year and 28 for month
 #' @return tibble clipped to include only complete intervals
-oisst_complete_intervals = function(x = read_oisst()){
+oisst_complete_intervals = function(x = read_oisst(), 
+                                    by = c("month", "year")[2],
+                                    min_count = c(month = 28, year = 12)[by]){
 
+  if (tolower(by[1]) == 'month'){
+    message("oisst comes as monthly aggregation - returning input")
+    return(x)
+  }
+  if (nrow(x) == 0) return(x)
+  fmt = switch(tolower(by[1]),
+               "year" = "%Y-01-01",
+               "month" = "%Y-%m-01")
+  
   min_count = 12 # 12/year to be complete
   
-  dplyr::mutate(x, interval_ = format(.data$date, "%Y-01-01")) |>
+  dplyr::mutate(x, interval_ = format(.data$date, fmt)) |>
     dplyr::group_by(region, interval_) |>
     dplyr::group_map(
       function(tbl, key){

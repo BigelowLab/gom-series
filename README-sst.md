@@ -57,6 +57,8 @@ ggplot(data = georges_basin, aes(x = date, y = min)) +
 
 ![](README-sst_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
 
+Another monthly analysis plot.
+
 ``` r
 name = "Georges Basin"
 plot(stsaav::stsaav(georges_basin,
@@ -68,23 +70,28 @@ plot(stsaav::stsaav(georges_basin,
 
 ![](README-sst_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
 
-### Annual Means
+### Annual Metrics
 
 Annual means can be computed from the various sst metrics since each
-month has the same number of pixels are sampled for each region.
+month has the same number of pixels are sampled for each region. Partial
+years are not computed.
 
-Below we compute the annual means and then clip the data to just
-complete years (meaning drop the current year). Then we plot the mean
-max and min by region.
+Note that we compute only the following… the min of the min, the median
+of the median, the mean of the mean and the max of the max. Then we plot
+the max and min by region.
 
 ``` r
-a <- annualize_oisst(x) |>
-  dplyr::filter(year < as.numeric(format(Sys.Date(), "%Y"))-1) |>
+a <- aggregate_oisst(x) |>
   dplyr::group_by(region)
 
-ggplot(data = a, aes(x = year, y = min)) + 
-  geom_line(color = "blue") +
-  geom_line(aes(y = max), color = "orange") +
+ggplot(data = a, aes(x = date, y = median)) + 
+  geom_line(color = "black", alpha = 0.7) +
+  geom_smooth(method = "lm", se = FALSE, color = "black") +
+  geom_line(aes(x = date, y = min), color = "blue", alpha = 0.7) +
+  geom_smooth(aes(x = date, y = min), method = "lm", se = FALSE, color = "blue") +
+  geom_line(aes(x = date, y = max), color = "orange", alpha = 0.7) + 
+  geom_smooth(aes(x = date, y = max), method = "lm", se = FALSE, color = "orange") + 
+  labs(y = "Median, Min and Max SST") + 
   facet_wrap(~region)
 ```
 
