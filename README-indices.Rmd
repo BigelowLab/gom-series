@@ -20,12 +20,12 @@ source("setup.R")
 Enfield, D.B., A. M. Mestas-Nunez and P.J. Trimble, 2001: The Atlantic multidecadal oscillation and it's relation to rainfall and river flows in the continental U.S.. Geophysical Research Letters, Vol. 28, 2077-2080.
 
 ```{r}
-amo_wide <- fetch_amo(form="wide") |>
+read_amo(form="wide") |>
   glimpse()
 ```
 
 ```{r}
-amo_long <- fetch_amo(form = "long") |>
+amo_long <- read_amo(form = "long") |>
   glimpse()
 ```
 
@@ -43,12 +43,12 @@ Jones, P.D., Jónsson, T. and Wheeler, D., 1997: Extension to the North Atlantic
 
 
 ```{r}
-fetch_nao(form="wide") |>
+read_nao(form="wide") |>
   glimpse()
 ```
 
 ```{r}
-nao_long <- fetch_nao(form = "long") |>
+nao_long <- read_nao(form = "long") |>
   glimpse()
 ```
 
@@ -58,4 +58,34 @@ ggplot(nao_long, aes(x=date, y=nao)) +
   geom_line()
 ```
 
+
+## Gulf Stream Index (GSI)
+
+
+```{r}
+read_gsi() |>
+  glimpse()
+```
+
+
+# Aggregating and exporting
+
+## Aggregate a climate index by year
+
+
+```{r}
+
+read_gsi() |>
+  aggregate_climate_index() |>
+  glimpse()
+```
+
+## Export a wide table with all three climate indices aggregated by year
+
+Use argument `complete_intervals` to only return years with no NA values across any index - default is TRUE
+
+```{r}
+export_climate_indices() |>
+  glimpse()
+```
 

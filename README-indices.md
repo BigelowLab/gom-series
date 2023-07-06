@@ -16,7 +16,7 @@ in the continental U.S.. Geophysical Research Letters, Vol. 28,
 2077-2080.
 
 ``` r
-amo_wide <- fetch_amo(form="wide") |>
+read_amo(form="wide") |>
   glimpse()
 ```
 
@@ -37,7 +37,7 @@ amo_wide <- fetch_amo(form="wide") |>
     ## $ dec  <dbl> 0.253, -0.259, 0.146, 0.105, 0.164, 0.137, -0.337, -0.095, 0.209,…
 
 ``` r
-amo_long <- fetch_amo(form = "long") |>
+amo_long <- read_amo(form = "long") |>
   glimpse()
 ```
 
@@ -64,7 +64,7 @@ Atlantic Oscillation using early instrumental pressure observations from
 Gibraltar and South-West Iceland. Int. J. Climatol. 17, 1433-1450.
 
 ``` r
-fetch_nao(form="wide") |>
+read_nao(form="wide") |>
   glimpse()
 ```
 
@@ -85,7 +85,7 @@ fetch_nao(form="wide") |>
     ## $ dec  <dbl> -1.03, 1.13, -0.49, -0.52, 0.55, 0.07, 0.00, 0.02, -0.74, 0.32, -…
 
 ``` r
-nao_long <- fetch_nao(form = "long") |>
+nao_long <- read_nao(form = "long") |>
   glimpse()
 ```
 
@@ -100,3 +100,67 @@ ggplot(nao_long, aes(x=date, y=nao)) +
 ```
 
 ![](README-indices_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
+
+## Gulf Stream Index (GSI)
+
+``` r
+read_gsi() |>
+  glimpse()
+```
+
+    ## Rows: 816
+    ## Columns: 2
+    ## $ date <date> 1954-01-01, 1954-02-01, 1954-03-01, 1954-04-01, 1954-05-01, 1954…
+    ## $ gsi  <dbl> 1.72374596, 1.88613100, 1.54812352, 1.51665538, 1.36922375, 1.763…
+
+# Aggregating and exporting
+
+## Aggregate a climate index by year
+
+``` r
+read_gsi() |>
+  aggregate_climate_index() |>
+  glimpse()
+```
+
+    ## Rows: 68
+    ## Columns: 7
+    ## $ date   <date> 1954-01-01, 1955-01-01, 1956-01-01, 1957-01-01, 1958-01-01, 19…
+    ## $ min    <dbl> -0.7054446, -0.9944506, -1.2142227, -0.6664228, -2.1942221, -2.…
+    ## $ q25    <dbl> 0.52036531, -0.49434191, -0.80205518, -0.10459647, -1.54099868,…
+    ## $ median <dbl> 1.421017897, -0.149509610, -0.144962851, 0.076862532, -0.985360…
+    ## $ mean   <dbl> 1.02788177, -0.15596674, -0.24112644, 0.10560797, -1.16604000, …
+    ## $ q75    <dbl> 1.63593474, 0.23481269, 0.25289442, 0.27814072, -0.77375428, -1…
+    ## $ max    <dbl> 1.88613100, 0.55928569, 0.56460633, 1.25557445, -0.45797480, -0…
+
+## Export a wide table with all three climate indices aggregated by year
+
+Use argument `complete_intervals` to only return years with no NA values
+across any index - default is TRUE
+
+``` r
+export_climate_indices() |>
+  glimpse()
+```
+
+    ## Rows: 68
+    ## Columns: 19
+    ## $ date       <date> 1954-01-01, 1955-01-01, 1956-01-01, 1957-01-01, 1958-01-01…
+    ## $ amo.min    <dbl> -0.059, 0.033, -0.272, -0.129, 0.040, -0.068, 0.079, -0.029…
+    ## $ nao.min    <dbl> -2.57, -2.65, -1.89, -1.73, -2.46, -1.52, -2.59, -1.83, -2.…
+    ## $ gsi.min    <dbl> -0.7054446, -0.9944506, -1.2142227, -0.6664228, -2.1942221,…
+    ## $ amo.q25    <dbl> -0.0370, 0.0780, -0.0975, -0.0855, 0.1540, -0.0245, 0.1475,…
+    ## $ nao.q25    <dbl> -0.425, -1.290, -1.030, -0.995, -1.665, 0.100, -1.650, -0.5…
+    ## $ gsi.q25    <dbl> 0.52036531, -0.49434191, -0.80205518, -0.10459647, -1.54099…
+    ## $ amo.median <dbl> -0.0195, 0.1775, -0.0585, 0.0060, 0.1865, 0.0225, 0.2240, 0…
+    ## $ nao.median <dbl> 0.015, -0.700, -0.230, -0.370, -0.910, 0.325, -0.350, 0.020…
+    ## $ gsi.median <dbl> 1.421017897, -0.149509610, -0.144962851, 0.076862532, -0.98…
+    ## $ amo.mean   <dbl> 0.02575000, 0.17491667, -0.03716667, 0.02216667, 0.19516667…
+    ## $ nao.mean   <dbl> -0.08583333, -0.50000000, -0.17333333, -0.24250000, -0.7033…
+    ## $ gsi.mean   <dbl> 1.02788177, -0.15596674, -0.24112644, 0.10560797, -1.166040…
+    ## $ amo.q75    <dbl> 0.0900, 0.2550, 0.0335, 0.1085, 0.2120, 0.1015, 0.2900, 0.1…
+    ## $ nao.q75    <dbl> 0.475, 0.265, 0.405, 0.510, 0.170, 0.740, 0.425, 1.050, 0.3…
+    ## $ gsi.q75    <dbl> 1.63593474, 0.23481269, 0.25289442, 0.27814072, -0.77375428…
+    ## $ amo.max    <dbl> 0.220, 0.378, 0.179, 0.213, 0.338, 0.116, 0.326, 0.217, 0.1…
+    ## $ nao.max    <dbl> 1.31, 1.78, 2.10, 1.95, 1.59, 1.48, 1.33, 1.36, 0.96, 2.05,…
+    ## $ gsi.max    <dbl> 1.88613100, 0.55928569, 0.56460633, 1.25557445, -0.45797480…
