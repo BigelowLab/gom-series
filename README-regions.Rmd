@@ -20,7 +20,7 @@ Region definitions are adapted from [MarineRegions.org](https://www.marineregion
 
 ```{r}
 x = read_regions(keep = 'all')
-plot(x,  
+plot(x['region'],  
      main = "Gulf of Maine Regions", 
      axes = TRUE,
      key.width = lcm(7),
@@ -28,7 +28,7 @@ plot(x,
 ```
 
 
-We opt to use a smaller selection of the available regions by default: "Wikinson Basin", "Jordan Basin", "Georges Basin", "Georges Bank", "Eastern Maine Coastal Shelf" and "Western Coastal Shelf".  Note below that we drop the use of the `keep = 'all'` to get the subset.
+We opt to use a smaller selection of the available regions by default: "Wilkinson Basin", "Jordan Basin", "Georges Basin", "Georges Bank", "Eastern Maine Coastal Shelf" and "Western Coastal Shelf".  Note below that we drop the use of the `keep = 'all'` to get the subset.
 
 We provide options for loading as bounding boxes...
 

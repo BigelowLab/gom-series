@@ -1,3 +1,9 @@
+# add a check for Bigelow-github packages here
+# cofbb, stsaav, wdspaleo, ghcnd
+# install.packages("rnaturalearthhires", repos = "http://packages.ropensci.org", type = "source")
+
+
+
 suppressPackageStartupMessages({
   here::i_am("setup.R")
   library(rlang)
@@ -9,7 +15,8 @@ suppressPackageStartupMessages({
   library(sf)
   library(stars)
   library(rnaturalearth)
-  library(copernicus)
+  library(rnaturalearthdata)
+  #library(copernicus)
   library(stsaav)
   library(wdspaleo)
   library(ghcnd)

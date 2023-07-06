@@ -8,7 +8,7 @@
 #' @param by character, one of "year" (default) or "month"
 #' @param min_count numeric defaults to 364 or 365, but adjust to 28 or 29 for month
 #' @return tibble clipped to include only complete intervals
-buoy_complete_intervals = function(x, 
+complete_intervals_buoys = function(x, 
   by = c("year", "month")[1], 
   min_count = c("year" = 364, "month" = 28)[[by]]){
   
@@ -207,13 +207,13 @@ fetch_buoy_met = function(buoy = "B01",
     drop_suffix()
   
   yfile = file.path(path, paste0(buoy, "_met_yearly.csv.gz"))
-  y = buoy_complete_intervals(x, by = "year") |>
+  y = complete_intervals_buoys(x, by = "year") |>
     met_aggregate(by = "year") |>
     dplyr::mutate(buoy = buoy, .before = 1) |>
     readr::write_csv(yfile)
   
   mfile = file.path(path, paste0(buoy, "_met_monthly.csv.gz"))
-  buoy_complete_intervals(x, by = "month") |>
+  complete_intervals_buoys(x, by = "month") |>
     met_aggregate(by = "month") |>
     dplyr::mutate(buoy = buoy, .before = 1) |>
     readr::write_csv(mfile)
