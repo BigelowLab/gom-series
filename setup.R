@@ -28,6 +28,7 @@ suppressPackageStartupMessages({
   library(dplyr)
   library(dataRetrieval)
   library(stringr)
+  library(purrr)
 })
 
 PATH = here::here()

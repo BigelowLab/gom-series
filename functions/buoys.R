@@ -170,7 +170,7 @@ met_aggregate = function(x, by = c("month", "year")[1]){
   
   fmt = switch(tolower(by[1]),
                "month" = "%Y-%m-01",
-               "year" = "%Y-%01-01")
+               "year" = "%Y-01-01")
   
   dplyr::mutate(x, date = format(time, fmt)) |>
     dplyr::group_by(date) |>
@@ -316,7 +316,7 @@ fetch_buoy_ctd = function(buoy = "B01",
                           path = here::here("data","buoy")){
   
   mfile = file.path(path, paste0(buoy, "_ctd_monthly.csv.gz"))
-  yfile = file.path(path, paste0(buoy, "_ctd_monthly.csv.gz"))
+  yfile = file.path(path, paste0(buoy, "_ctd_yearly.csv.gz"))
   
   tmpfile = tempfile()
   uri = ctd_query_uri(buoy)
@@ -327,12 +327,12 @@ fetch_buoy_ctd = function(buoy = "B01",
     mask_qc() |>
     drop_suffix()
   
-  y = buoy_complete_intervals(r, by = "year")  |>
-    ctd_aggregate(by = "month") |>
+  y = complete_intervals_buoys(r, by = "year")  |>
+    ctd_aggregate(by = "year") |>
     dplyr::mutate(buoy = buoy, .before = 1) |>
     readr::write_csv(yfile)
   
-  buoy_complete_intervals(r, by = "month")|>
+  complete_intervals_buoys(r, by = "month")|>
     ctd_aggregate(by = "month") |>
     dplyr::mutate(buoy = buoy, .before = 1) |>
     readr::write_csv(mfile)
@@ -758,4 +758,33 @@ fetch_buoys <- function(buoy = buoy_lut()$id,
            stop("dataset not known:", wh) )
   }
   invisible(NULL)
+}
+
+
+#' Export the annual (or monthly) data in a wide format
+#' @param x aggregated dataset
+#' @return wide tibble of aggregated data
+export_buoy = function(){
+  
+  src = c("met", "ctd", "optics", "rtsc", "adcp")
+  xx = sapply(src, 
+              function(s){
+                glue = sprintf('BUOY_{buoy}.%s.{.value}', s)
+                r = switch (s,
+                  "met" = read_buoy_met(interval = "year"),
+                  "ctd" = read_buoy_ctd(interval = "year"),
+                  "optics" = read_buoy_optics(interval = "year"),
+                  "rtsc" = read_buoy_rtsc(interval = "year"),
+                  "adcp" = read_buoy_adcp(interval = "year")
+                ) |>
+                  tidyr::pivot_wider(names_from = "buoy", 
+                                     id_cols = "date",
+                                     names_glue = glue,
+                                     values_from = where(is.numeric))
+              },
+              simplify = FALSE
+  )
+  
+  purrr::reduce(xx, dplyr::left_join, by = "date")
+  
 }

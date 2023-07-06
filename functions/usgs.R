@@ -3,7 +3,7 @@
 #' @param x table of USGS daily data for one or more sites (identified by site_no)
 #' @param by string, the interbval over which to aggregate - one of month or year
 #' @return tibble with aggregate stats 
-usgs_aggregate = function(x = fetch_usgs(),
+aggregate_usgs = function(x = fetch_usgs(),
                           by = c("month", "year")[1]){
   
   if (nrow(x) == 0) return(x)
@@ -11,7 +11,7 @@ usgs_aggregate = function(x = fetch_usgs(),
                "year" = "%Y-01-01",
                "month" = "%Y-%m-01")
   x |>
-    usgs_complete_intervals(by=by) |>
+    complete_intervals_usgs(by=by) |>
     dplyr::mutate(interval_ = format(.data$date, fmt) |> as.Date(), .before = 1) |>
     dplyr::select(-dplyr::any_of(c("date", "week", "season"))) |>
     dplyr::group_by(site_no, interval_) |>
@@ -36,7 +36,7 @@ usgs_aggregate = function(x = fetch_usgs(),
 #' @param by character, one of "year" (default) or "month"
 #' @param min_count numeric defaults to 364 or 365, but adjust to 28 or 29 for month
 #' @return tibble clipped to include only complete intervals
-usgs_complete_intervals = function(x, 
+complete_intervals_usgs = function(x, 
                                    by = c("year", "month")[1], 
                                    min_count = c("year" = 12*28, "month" = 28)[[by]]){
   
@@ -121,3 +121,17 @@ fetch_usgs <- function(stations = usgs_lut(),
 ##          lat = dec_lat_va,
 ##          lon = dec_long_va) |>
 ##   readr::write_csv("gom_stations.csv")
+
+#' Export the annual (or monthly) data in a wide format
+#' @param x aggregated dataset
+#' @return wide tibble of aggregated data
+export_usgs = function(x = aggregate_usgs()){
+  
+  w = x|>
+    tidyr::pivot_wider(names_from = "site_no", 
+                       id_cols = "date",
+                       names_glue = "USGS{site_no}.discharge.{.value}",
+                       values_from = where(is.numeric))
+  
+}
+

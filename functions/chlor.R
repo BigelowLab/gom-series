@@ -369,4 +369,18 @@ CMEMS_CHLOR = R6::R6Class("CMEMS_CHLOR",
   
   )# CMEMS_CHLOR
 
+#' Export the annual (or monthly) data in a wide format
+#' @param x aggregated dataset
+#' @return wide tibble of aggregated data
+export_chlor_cmems = function(x = aggregate_chlor_cmems()){
+  
+  x = mutate(x, region = region_shortnames()[region])
+  
+  w = x|>
+    tidyr::pivot_wider(names_from = "region", 
+                       id_cols = "date",
+                       names_glue = "{region}.chlor.{.value}",
+                       values_from = where(is.numeric))
+  
+}
 

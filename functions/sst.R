@@ -314,4 +314,17 @@ OISST = R6::R6Class("OISST",
                           
 )# OISST
 
-
+#' Export the annual (or monthly) data in a wide format
+#' @param x aggregated dataset
+#' @return wide tibble of aggregated data
+export_oisst = function(x = aggregate_oisst()){
+  
+  x = mutate(x, region = region_shortnames()[region])
+  
+  w = x|>
+    tidyr::pivot_wider(names_from = "region", 
+                       id_cols = "date",
+                       names_glue = "{region}.sst.{.value}",
+                       values_from = where(is.numeric))
+  
+}
