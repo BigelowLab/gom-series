@@ -20,7 +20,7 @@ eastern_coastal_mask = function(){
 #' @param keep char, one or more regions to keep, or "all" to keep all
 #' @return sf object
 read_regions <- function(filename = "gulf_of_maine_regions.gpkg",
-                         path = here::here("data"),
+                         path = here::here("data", "regions"),
                          split_coastal = TRUE,
                          form = c("raw", "bbox", "chull")[1],
                          keep = c("Wikinson Basin", "Jordan Basin", "Georges Basin",  
@@ -82,19 +82,22 @@ read_regions <- function(filename = "gulf_of_maine_regions.gpkg",
 }
 
 
-
-region_shortnames = function(){
-  c("Southern Coastal Shelf" = "SoCoSh", 
-    "Eastern Coastal Shelf" = "EaCoSh", 
-    "Browns Bank" = "BrBnk", 
-    "Wikinson Basin" = "WilkBsn", 
-    "Jordan Basin" = "JordBsn", 
-    "Georges Basin" = "GeorBsn",
-    "Central Gulf of Maine" = "CenGoM", 
-    "Scotian Coastal Shelf" = "ScCoSh", 
-    "Scotian Shelf" = "ScSh", 
-    "Georges Bank" = "GeorBnk", 
-    "Bay of Fundy" = "Fundy", 
-    "Eastern Maine Coastal Shelf" = "EaMeCoSh", 
-    "Western Coastal Shelf" = "WeCoSh")
+#' A collection of shortnames (no spaces) to crisply identify unique
+#' 
+#' By default it contains the regions that match the Gulf of Maine regions,
+#' but simply append your own to data/regions/shortnames.csv.  If not match is found then
+#' the shortname is simply and empty string.
+#' 
+#' @param filename char, the filename with the shortname definitions
+#' @param form char one of 'table' or 'vector' (the default)
+#' @return a tibble or a named vector
+region_shortnames = function(filename = here::here("data", "regions", "shortnames.csv"),
+                             form = c("table", "vector")[2]){
+  
+  x = readr::read_csv(filename, col_types = 'cc')
+  if (tolower(form[1]) == 'vector') {
+    x = dplyr::pull(x, dplyr::all_of("shortname")) |>
+      rlang::set_names(dplyr::pull(x, dplyr::all_of("name")))
+  }
+  
 }

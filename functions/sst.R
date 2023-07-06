@@ -1,30 +1,3 @@
-#' Annualize sst values (from monthly)
-#' 
-#' @param x tibble of date, region and sst params
-#' @return annulaized tibble
-annualize_oisst = function(x = read_oisst()){
-  
-  x |>
-    complete_intervals_oisst() |>
-    dplyr::mutate(year = as.numeric(format(date, "%Y")), .before = 1) |>
-    dplyr::select(-dplyr::any_of(c("date", "month", "week", "season"))) |>
-    dplyr::group_by(region, year) |>
-    dplyr::group_map(
-      function(tbl, key){
-        r = tbl |>
-          dplyr::mutate(min = mean(min),
-                        q25 = mean(q25),
-                        median = mean(median),
-                        mean = mean(mean),
-                        q75 = mean(q75),
-                        max = mean(max) )
-      }, .keep = TRUE) |>
-  dplyr::bind_rows()
-  
-}
-
-
-
 #' Aggregate OISST daily data by month or year
 #'
 #' @param x table of USGS daily data for one or more sites (identified by site_no)
@@ -32,7 +5,7 @@ annualize_oisst = function(x = read_oisst()){
 #'   OISST comes natively as monthly aggregations.  So this really only handles by 
 #'   year.
 #' @return tibble with aggregate stats 
-aggregate_oisst = function(x = fetch_oisst(),
+aggregate_oisst = function(x = read_oisst(),
                           by = c("month", "year")[2]){
   if (tolower(by[1]) == 'month'){
     message("oisst comes as monthly aggregation - returning input")
@@ -44,12 +17,12 @@ aggregate_oisst = function(x = fetch_oisst(),
                "year" = "%Y-01-01",
                "month" = "%Y-%m-01")
   x |>
-    complete_intervals_oisst(by=by) |>
+    complete_intervals_oisst(by = by) |>
     dplyr::mutate(interval_ = format(.data$date, fmt) |> as.Date(), .before = 1) |>
     dplyr::select(-dplyr::any_of(c("date", "year", "month", "week", "season"))) |>
     dplyr::group_by(region, interval_) |>
     dplyr::group_map(
-      function(tbl, key, parameters = c("min", "median", "mean", "max")){
+      function(tbl, key, parameters = c("min", "q25", "median", "mean", "q75", "max")){
         v = sapply(parameters,
           function(p){
             vals = tbl |> 
@@ -174,6 +147,24 @@ fetch_oisst <- function(x = read_regions(),
   X$close_nc()
   r
 } # fetch_oisst
+
+
+
+#' Export the annual (or monthly) data in a wide format
+#' @param x aggregated dataset
+#' @return wide tibble of aggregated data
+export_oisst = function(x = aggregate_oisst(by = c("year", "month")[1])){
+  
+  x = dplyr::mutate(x, region = region_shortnames()[region])
+  
+  w = x|>
+    tidyr::pivot_wider(names_from = "region", 
+                       id_cols = "date",
+                       names_glue = "{region}.sst.{.value}",
+                       values_from = where(is.numeric))
+  
+}
+
 
 
 ##### R6 class below ###########################################################
@@ -314,17 +305,3 @@ OISST = R6::R6Class("OISST",
                           
 )# OISST
 
-#' Export the annual (or monthly) data in a wide format
-#' @param x aggregated dataset
-#' @return wide tibble of aggregated data
-export_oisst = function(x = aggregate_oisst()){
-  
-  x = mutate(x, region = region_shortnames()[region])
-  
-  w = x|>
-    tidyr::pivot_wider(names_from = "region", 
-                       id_cols = "date",
-                       names_glue = "{region}.sst.{.value}",
-                       values_from = where(is.numeric))
-  
-}

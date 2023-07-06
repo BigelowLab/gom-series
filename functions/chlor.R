@@ -38,7 +38,7 @@ aggregate_chlor_cmems = function(x = read_chlor_cmems(logscale = FALSE),
                            by = c("month", "year")[2],
                            logscale = FALSE){
   if (tolower(by[1]) == 'month'){
-    message("cholr_cmems comes as monthly aggregation - returning input")
+    message("chlor_cmems comes as monthly aggregation - returning input")
     return(x)
   }
   
@@ -52,7 +52,7 @@ aggregate_chlor_cmems = function(x = read_chlor_cmems(logscale = FALSE),
     dplyr::select(-dplyr::any_of(c("date", "year", "month", "week", "season"))) |>
     dplyr::group_by(region, interval_) |>
     dplyr::group_map(
-      function(tbl, key, parameters = c("min", "median", "mean", "max")){
+      function(tbl, key, parameters = c("min", "q25", "median", "mean", "q75", "max")){
         v = sapply(parameters,
                    function(p){
                      vals = tbl |> 
@@ -192,6 +192,21 @@ fetch_chlor_cmems <- function(x = read_regions(),
   r
 } # fetch_cmems_chlor
   
+#' Export the annual (or monthly) data in a wide format
+#' @param x aggregated dataset
+#' @return wide tibble of aggregated data
+export_chlor_cmems = function(x = aggregate_chlor_cmems(by = c("year", "month")[1])){
+  
+  x = mutate(x, region = region_shortnames()[region])
+  
+  w = x|>
+    tidyr::pivot_wider(names_from = "region", 
+                       id_cols = "date",
+                       names_glue = "{region}.chlor.{.value}",
+                       values_from = where(is.numeric))
+  
+}
+
 
 
 ##### R6 class below ###########################################################
@@ -368,19 +383,3 @@ CMEMS_CHLOR = R6::R6Class("CMEMS_CHLOR",
   
   
   )# CMEMS_CHLOR
-
-#' Export the annual (or monthly) data in a wide format
-#' @param x aggregated dataset
-#' @return wide tibble of aggregated data
-export_chlor_cmems = function(x = aggregate_chlor_cmems()){
-  
-  x = mutate(x, region = region_shortnames()[region])
-  
-  w = x|>
-    tidyr::pivot_wider(names_from = "region", 
-                       id_cols = "date",
-                       names_glue = "{region}.chlor.{.value}",
-                       values_from = where(is.numeric))
-  
-}
-
