@@ -25,14 +25,77 @@ annualize_chlor_cmems = function(x = read_chlor_cmems()){
   
 }
 
+
+#' Aggregate chlor_cmems daily data by month or year
+#'
+#' @param x table of chlor_cmems monthkly values (raw - not logscaled)
+#' @param by string, the interval over which to aggregate - one of month or year although
+#'   chlor_cmems comes natively as monthly aggregations.  So this really only handles by 
+#'   year.
+#' @param logscale logical, if TRUE take the log base 10
+#' @return tibble with aggregate stats 
+aggregate_chlor_cmems = function(x = read_chlor_cmems(logscale = FALSE),
+                           by = c("month", "year")[2],
+                           logscale = FALSE){
+  if (tolower(by[1]) == 'month'){
+    message("cholr_cmems comes as monthly aggregation - returning input")
+    return(x)
+  }
+  
+  if (nrow(x) == 0) return(x)
+  fmt = switch(tolower(by[1]),
+               "year" = "%Y-01-01",
+               "month" = "%Y-%m-01")
+  x = x |>
+    chlor_cmems_complete_intervals(by=by) |>
+    dplyr::mutate(interval_ = format(.data$date, fmt) |> as.Date(), .before = 1) |>
+    dplyr::select(-dplyr::any_of(c("date", "year", "month", "week", "season"))) |>
+    dplyr::group_by(region, interval_) |>
+    dplyr::group_map(
+      function(tbl, key, parameters = c("min", "median", "mean", "max")){
+        v = sapply(parameters,
+                   function(p){
+                     vals = tbl |> 
+                       dplyr::pull(p) |> 
+                       sixnum()
+                     vals[[p]]
+                   }, simplify = FALSE) |>
+          dplyr::as_tibble()
+        dplyr::select(tbl, dplyr::all_of(c("interval_", "region"))) |>
+          dplyr::slice(1) |>
+          dplyr::bind_cols(v)
+      }, .keep = TRUE) |>
+    dplyr::bind_rows() |>
+    dplyr::rename(date = "interval_")
+  if (logscale) x = dplyr::mutate_if(x, is.numeric, log10)
+  x
+}
+
+
+
 #' Clip a table so that only complete intervals are present (for subsequent
 #'  aggregation).  
 #'
 #' @param x tibble of chlor_cmems data
+#' @param by string, the interval over which to aggregate - one of month or year although
+#'   chlor_cmems comes natively as monthly aggregations.  So this really only handles by 
+#'   year.
+#' @param min_count numeric defaults to 12 for year and 28 for month
 #' @return tibble clipped to include only complete intervals
-chlor_cmems_complete_intervals = function(x = read_chlor_cmems()){
+chlor_cmems_complete_intervals = function(x = read_chlor_cmems(),
+                                          by = c("month", 'year')[[2]],
+                                          min_count = c(month = 28, year = 12)[[by]]){
   
-  min_count = 12 # 12/year to be complete
+  if (tolower(by[1]) == 'month'){
+    message("chlor_cmems comes as monthly aggregation - returning input")
+    return(x)
+  }
+  
+  if (nrow(x) == 0) return(x)
+  fmt = switch(tolower(by[1]),
+               "year" = "%Y-01-01",
+               "month" = "%Y-%m-01")
+
   
   dplyr::mutate(x, interval_ = format(.data$date, "%Y-01-01")) |>
     dplyr::group_by(region, interval_) |>
@@ -57,7 +120,7 @@ chlor_cmems_complete_intervals = function(x = read_chlor_cmems()){
 #' @return tibble of date, region and chlor
 read_chlor_cmems = function(filename =  "chlor_cmems.csv.gz",
                             path = here::here("data", "chlor"),
-                            logscale = TRUE){
+                            logscale = FALSE){
   
   x = readr::read_csv(file.path(path[1], filename[1]),
                       col_types = 'Dcnnnnnn')
@@ -65,40 +128,6 @@ read_chlor_cmems = function(filename =  "chlor_cmems.csv.gz",
   x
 }
 
-
-
-#' Extract data from the local CMEMS chlor dataset
-#' 
-#' @param x regions to extract
-#' @param path the output path
-#' @return tibble for date, region, mean chlorophyll
-chlor_cmems_extract_regions <- function(x = read_regions(),
-                                  path = here::here("data", "chlor")){
-  
-  PATH = copernicus::copernicus_path("c3s_obs-oc_glo_bgc-plankton_my_l4-multi-4km_P1M","world")
-  DB = copernicus::read_database(PATH)
-  ff = file.path(PATH, format(DB$date, "%Y"),
-                  sprintf("%s_%s_%s.tif",
-                          format(DB$date, "%Y-%m-%d"),
-                          DB$var,
-                          DB$depth))
-  DB <- dplyr::mutate(DB, file = ff)
-  
-  # for each date
-  # make a table of table, date region, and mean chlor
-  rowwise(DB) |>
-    dplyr::group_map(
-      function(db, key){
-        stars::st_extract(stars::read_stars(db$file), x, na.rm = TRUE) |>
-          sf::st_as_sf() |>
-          sf::st_drop_geometry() |> 
-          rlang::set_names("chlor") |>
-          dplyr::mutate(date = db$date, region = x$region, .before = 1)
-      }) |>
-    dplyr::bind_rows() |>
-    readr::write_csv(file.path(path, "chlor_cmems.csv.gz"))
-  
-}
 
 #' Extract data from the online CMEMS chlor dataset
 #'

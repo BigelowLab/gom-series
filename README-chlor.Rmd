@@ -68,20 +68,20 @@ Annual means can be computed from the various chlor metrics since each month has
 Below we compute the annual means and then clip the data to just complete years (meaning drop the current year).  Then we plot the mean max and min by region.
 
 ```{r}
-a <- annualize_chlor_cmems(x) |>
-  dplyr::mutate(date = as.Date(paste0(year, "-01-01")), .before = 1) |>
-  dplyr::filter(year < as.numeric(format(Sys.Date(), "%Y"))-1) |>
+a <- aggregate_chlor_cmems(x, logscale = FALSE) |>
   dplyr::group_by(region)
 
-ggplot(data = a, aes(x = date, y = min)) + 
+d = 0.001
+
+ggplot(data = a, aes(x = date, y = median + d)) + 
+  geom_line(color = "black", alpha = 0.7) +
+  geom_smooth(method = "lm", se = FALSE, color = "black") +
+  geom_line(aes(x = date, y = min + d), color = "blue", alpha = 0.7) +
+  geom_smooth(aes(x = date, y = min + d), method = "lm", se = FALSE, color = "blue") +
+  geom_line(aes(x = date, y = max + d), color = "orange", alpha = 0.7) + 
+  geom_smooth(aes(x = date, y = max + d), method = "lm", se = FALSE, color = "orange") + 
+  labs(y = "Median, Min and Max Chlor", title = "CMEMS annuals by region") + 
   scale_y_log10() + 
-  geom_line(color = "blue") +
-  geom_line(aes(y = max), color = "orange") +
-  scale_x_date(
-    NULL,
-    breaks = scales::breaks_width("5 years"),
-    labels = scales::label_date("'%y")) + 
-  labs(y = "Min and Max log10(chlor)") + 
   facet_wrap(~region)
 ```
 

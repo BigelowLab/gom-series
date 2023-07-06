@@ -78,7 +78,7 @@ aggregate_oisst = function(x = fetch_oisst(),
 #' @return tibble clipped to include only complete intervals
 oisst_complete_intervals = function(x = read_oisst(), 
                                     by = c("month", "year")[2],
-                                    min_count = c(month = 28, year = 12)[by]){
+                                    min_count = c(month = 28, year = 12)[[by]]){
 
   if (tolower(by[1]) == 'month'){
     message("oisst comes as monthly aggregation - returning input")
@@ -88,8 +88,6 @@ oisst_complete_intervals = function(x = read_oisst(),
   fmt = switch(tolower(by[1]),
                "year" = "%Y-01-01",
                "month" = "%Y-%m-01")
-  
-  min_count = 12 # 12/year to be complete
   
   dplyr::mutate(x, interval_ = format(.data$date, fmt)) |>
     dplyr::group_by(region, interval_) |>
@@ -184,7 +182,7 @@ fetch_oisst <- function(x = read_regions(),
 ################################################################################
 
 
-#' R6 class for accessing OISST multiyear monthly SST
+# R6 class for accessing OISST multiyear monthly SST
 OISST = R6::R6Class("OISST",
   public = list(
     product_id = 'sst.mon.mean.nc',
