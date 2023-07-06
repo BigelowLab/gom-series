@@ -5,7 +5,7 @@
 annualize_chlor_cmems = function(x = read_chlor_cmems()){
   
   x |>
-    chlor_cmems_complete_intervals() |>
+    complete_intervals_chlor_cmems() |>
     dplyr::mutate(year = as.numeric(format(date, "%Y")), .before = 1) |>
     dplyr::select(-dplyr::any_of(c("date", "month", "week", "season"))) |>
     dplyr::group_by(region, year) |>
@@ -47,7 +47,7 @@ aggregate_chlor_cmems = function(x = read_chlor_cmems(logscale = FALSE),
                "year" = "%Y-01-01",
                "month" = "%Y-%m-01")
   x = x |>
-    chlor_cmems_complete_intervals(by=by) |>
+    complete_intervals_chlor_cmems(by=by) |>
     dplyr::mutate(interval_ = format(.data$date, fmt) |> as.Date(), .before = 1) |>
     dplyr::select(-dplyr::any_of(c("date", "year", "month", "week", "season"))) |>
     dplyr::group_by(region, interval_) |>
@@ -82,7 +82,7 @@ aggregate_chlor_cmems = function(x = read_chlor_cmems(logscale = FALSE),
 #'   year.
 #' @param min_count numeric defaults to 12 for year and 28 for month
 #' @return tibble clipped to include only complete intervals
-chlor_cmems_complete_intervals = function(x = read_chlor_cmems(),
+complete_intervals_chlor_cmems = function(x = read_chlor_cmems(),
                                           by = c("month", 'year')[[2]],
                                           min_count = c(month = 28, year = 12)[[by]]){
   

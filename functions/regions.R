@@ -74,5 +74,27 @@ read_regions <- function(filename = "gulf_of_maine_regions.gpkg",
   if (!("all" %in% tolower(keep))){
     x <- dplyr::filter(x, region %in% keep)
   }
+  
+  shortnames = region_shortnames()
+  name = rep("", nrow(x))
+  x = dplyr::mutate(x, name = shortnames[region], .after = 1)
   x
+}
+
+
+
+region_shortnames = function(){
+  c("Southern Coastal Shelf" = "SoCoSh", 
+    "Eastern Coastal Shelf" = "EaCoSh", 
+    "Browns Bank" = "BrBnk", 
+    "Wikinson Basin" = "WilkBsn", 
+    "Jordan Basin" = "JordBsn", 
+    "Georges Basin" = "GeorBsn",
+    "Central Gulf of Maine" = "CenGoM", 
+    "Scotian Coastal Shelf" = "ScCoSh", 
+    "Scotian Shelf" = "ScSh", 
+    "Georges Bank" = "GeorBnk", 
+    "Bay of Fundy" = "Fundy", 
+    "Eastern Maine Coastal Shelf" = "EaMeCoSh", 
+    "Western Coastal Shelf" = "WeCoSh")
 }

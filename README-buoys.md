@@ -4,9 +4,13 @@ GOM-Series Buoys
 ``` r
 suppressPackageStartupMessages({
   library(cofbb)
-  library(ggOceanMaps)
 })
 source("setup.R")
+
+bb <- cofbb::get_bb("gom", form = 'sf')
+regions = read_regions()
+coast = rnaturalearth::ne_coastline(scale = "large", returnclass = 'sf') |>
+  sf::st_crop(sf::st_bbox(bb))
 ```
 
 ## Buoy data aggregated to monthly means
@@ -31,10 +35,10 @@ buoys
     ## 6 nec   Northeast Channel   N01   -65.9  42.3
 
 ``` r
-bb <- cofbb::get_bb("gom")
-basemap(limits = bb, bathymetry = TRUE) + 
-  geom_point(data = buoys, aes(x = lon, y = lat), 
-             color = "orange") +
+ggplot(data = regions) +
+  geom_sf(fill = NA) +
+  geom_sf(data = coast, color = "blue") + 
+  geom_point(data = buoys, aes(x = lon, y = lat), color = "orange") +
   geom_text(data = buoys, aes(x = lon, y = lat, 
                               label = id,
                               hjust = 0.5, 
@@ -68,7 +72,7 @@ ggplot(data = x, aes(x = date, y = wind_speed, color = buoy, shape = buoy)) +
   geom_line()
 ```
 
-    ## Warning: Removed 4 rows containing missing values (`geom_line()`).
+    ## Warning: Removed 5 rows containing missing values (`geom_line()`).
 
 ![](README-buoys_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
 
@@ -123,7 +127,7 @@ ggplot(data = x, aes(x = date, y = temperature, color = depth)) +
   facet_wrap(~buoy)
 ```
 
-    ## Warning: Removed 1 row containing missing values (`geom_line()`).
+    ## Warning: Removed 6 rows containing missing values (`geom_line()`).
 
 ![](README-buoys_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
 
@@ -158,10 +162,10 @@ count(x, buoy, water_depth)
     ## # Groups:   buoy [4]
     ##   buoy  water_depth     n
     ##   <chr> <fct>       <int>
-    ## 1 B01   62             66
-    ## 2 E01   100            52
-    ## 3 I01   100            56
-    ## 4 M01   285            55
+    ## 1 B01   62             59
+    ## 2 E01   100            41
+    ## 3 I01   100            43
+    ## 4 M01   285            39
 
 ``` r
 ggplot(data = x, aes(x = date, y = chlorophyll, color = water_depth)) +
@@ -170,9 +174,21 @@ ggplot(data = x, aes(x = date, y = chlorophyll, color = water_depth)) +
   facet_wrap(~buoy)
 ```
 
+    ## Warning: Removed 2 rows containing missing values (`geom_line()`).
+
 ![](README-buoys_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
 
 ## ACDP at depth (water_depth, depth, current_u, current_v)
+
+### Fetch ACDP data
+
+ACDP data for these buoys can be fetched using `fetch_buoy_acdp()`. This
+function downloads high temporal resolution data per buoy at various
+depths, aggregates into monthly means and yearly, and saved to disk
+simple tables. Run this as needed to update data. Not every buoy has
+ADCP data.
+
+    adcp <- lapply(buoys$id, fetch_buoy_adcp)
 
 ### Read and display ADCP data
 
@@ -192,7 +208,7 @@ count(x, buoy, water_depth)
     ## # Groups:   buoy [1]
     ##   buoy  water_depth     n
     ##   <chr> <fct>       <int>
-    ## 1 B01   62             32
+    ## 1 B01   62             29
 
 ``` r
 ggplot(data = x, aes(x = date, y = current_u, color = water_depth)) +
@@ -222,12 +238,12 @@ count(x, buoy, depth)
     ## # Groups:   buoy [6]
     ##   buoy  depth     n
     ##   <chr> <dbl> <int>
-    ## 1 B01       2   251
-    ## 2 E01       2   256
-    ## 3 F01       2   248
-    ## 4 I01       2   251
-    ## 5 M01       2   236
-    ## 6 N01       2   177
+    ## 1 B01       2   228
+    ## 2 E01       2   223
+    ## 3 F01       2   214
+    ## 4 I01       2   224
+    ## 5 M01       2   201
+    ## 6 N01       2   151
 
 ``` r
 ggplot(data = x, aes(x = date, y = current_direction_u)) +

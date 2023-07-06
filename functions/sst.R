@@ -5,7 +5,7 @@
 annualize_oisst = function(x = read_oisst()){
   
   x |>
-    oisst_complete_intervals() |>
+    complete_intervals_oisst() |>
     dplyr::mutate(year = as.numeric(format(date, "%Y")), .before = 1) |>
     dplyr::select(-dplyr::any_of(c("date", "month", "week", "season"))) |>
     dplyr::group_by(region, year) |>
@@ -44,7 +44,7 @@ aggregate_oisst = function(x = fetch_oisst(),
                "year" = "%Y-01-01",
                "month" = "%Y-%m-01")
   x |>
-    oisst_complete_intervals(by=by) |>
+    complete_intervals_oisst(by=by) |>
     dplyr::mutate(interval_ = format(.data$date, fmt) |> as.Date(), .before = 1) |>
     dplyr::select(-dplyr::any_of(c("date", "year", "month", "week", "season"))) |>
     dplyr::group_by(region, interval_) |>
@@ -76,7 +76,7 @@ aggregate_oisst = function(x = fetch_oisst(),
 #'   year.
 #' @param min_count numeric defaults to 12 for year and 28 for month
 #' @return tibble clipped to include only complete intervals
-oisst_complete_intervals = function(x = read_oisst(), 
+complete_intervals_oisst = function(x = read_oisst(), 
                                     by = c("month", "year")[2],
                                     min_count = c(month = 28, year = 12)[[by]]){
 
