@@ -123,15 +123,19 @@ fetch_usgs <- function(stations = usgs_lut(),
 ##   readr::write_csv("gom_stations.csv")
 
 #' Export the annual (or monthly) data in a wide format
-#' @param x aggregated dataset
+#' @param by character, one of 'year' or 'month'
+#' @param x tibble or NULL, aggregated dataset.  If NULL we read it internally
 #' @return wide tibble of aggregated data
-export_usgs = function(x = aggregate_usgs()){
+export_usgs = function(by = c("year", "month")[1],
+                       x = NULL){
   
-  w = x|>
+  if (is.null(x)) x = aggregate_usgs(by = by)
+  
+  x|>
     tidyr::pivot_wider(names_from = "site_no", 
                        id_cols = "date",
                        names_glue = "USGS{site_no}.discharge.{.value}",
-                       values_from = where(is.numeric))
-  
+                       values_from = where(is.numeric))  |>
+    dplyr::arrange(date)
 }
 

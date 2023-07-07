@@ -38,7 +38,7 @@ aggregate_chlor_cmems = function(x = read_chlor_cmems(logscale = FALSE),
                            by = c("month", "year")[2],
                            logscale = FALSE){
   if (tolower(by[1]) == 'month'){
-    message("chlor_cmems comes as monthly aggregation - returning input")
+    # message("chlor_cmems comes as monthly aggregation - returning input")
     return(x)
   }
   
@@ -193,18 +193,23 @@ fetch_chlor_cmems <- function(x = read_regions(),
 } # fetch_cmems_chlor
   
 #' Export the annual (or monthly) data in a wide format
-#' @param x aggregated dataset
+#' @param by character, one of 'year' or 'month'
+#' @param x tibble or NULL, aggregated dataset.  If NULL we read it internally
 #' @return wide tibble of aggregated data
-export_chlor_cmems = function(x = aggregate_chlor_cmems(by = c("year", "month")[1])){
+export_chlor_cmems = function(by = c("year", "month")[1],
+                              x = NULL){
+  
+
+  if (is.null(x)) x = aggregate_chlor_cmems(by = by)
   
   x = mutate(x, region = region_shortnames()[region])
   
-  w = x|>
+  x|>
     tidyr::pivot_wider(names_from = "region", 
                        id_cols = "date",
                        names_glue = "{region}.chlor.{.value}",
-                       values_from = where(is.numeric))
-  
+                       values_from = where(is.numeric)) |>
+    dplyr::arrange(date)
 }
 
 

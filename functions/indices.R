@@ -170,28 +170,31 @@ aggregate_climate_index <- function(x,
 
 #' Join aggregated climate index data into one wide table
 #' 
+#' @param by character. one or 'year' or 'month'
 #' @param complete_intervals logical if TRUE only returns years that do not have NA values
 #' @return a wide table of aggregated climate index data
 #' 
-export_climate_indices <- function(complete_intervals = TRUE) {
+export_climate_indices <- function(by = c("year", "month")[1],
+                                   complete_intervals = TRUE) {
   
   amo <- read_amo() |>
-    aggregate_climate_index() |>
+    aggregate_climate_index(by = by) |>
     dplyr::mutate(index = "amo")
   
   nao <- read_nao() |>
-    aggregate_climate_index() |>
+    aggregate_climate_index(by = by) |>
     dplyr::mutate(index = "nao")
   
   gsi <- read_gsi() |>
-    aggregate_climate_index() |>
+    aggregate_climate_index(by = by) |>
     dplyr::mutate(index = "gsi")
   
   r <- bind_rows(amo, nao, gsi) |>
     tidyr::pivot_wider(id_cols = dplyr::all_of("date"),
                        names_from = "index",
                        names_glue = "{index}.{.value}",
-                       values_from = where(is.numeric))
+                       values_from = where(is.numeric))  |>
+    dplyr::arrange(date)
   
   if (complete_intervals) {
     r <- r |>

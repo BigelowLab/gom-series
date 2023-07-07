@@ -26,9 +26,6 @@ ghcn_lut = function(filename = here::here("data","ghcn", "station_list.gpkg")){
 #' @param stations sf tibble of stations identifiers
 #' @return sf tibble inheriting "ghcnd_inventory" class
 fetch_ghcn_inventory = function(stations = ghcn_lut()){
-  
-
-  
   ghcnd::fetch_inventory(stations = stations)
 }
 
@@ -121,6 +118,23 @@ aggregate_ghcn = function(x = fetch_ghcn(),
     dplyr::rename(date = "interval_")
 }
 
-export_ghcn = function(x, variable = "something", form = c("long", "wide")){
+
+#' Export the annual (or monthly) data in a wide format
+#' @param by character, one of 'year' or 'month'
+#' @param x tibble or NULL, aggregated dataset.  If NULL we read it internally
+#' @return wide tibble of aggregated data
+export_ghcn = function(by = c("year", "month")[1],
+                       x = NULL){
   
+  if (is.null(x)){ 
+    x = read_ghcn() |>
+      aggregate_ghcn(by = by)
+  }
+  
+  x|>
+    tidyr::pivot_wider(names_from = "STATION", 
+                       id_cols = "date",
+                       names_glue = "GHCN.{STATION}.{.value}",
+                       values_from = where(is.numeric))  |>
+    dplyr::arrange(date)
 }

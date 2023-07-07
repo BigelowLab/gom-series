@@ -234,7 +234,7 @@ read_buoy_met <- function(buoy = buoy_lut()$id,
                   "year" = "_met_yearly.csv.gz")
   lapply(buoy, 
          function(id){
-           filename = file.path(path, paste0(id, "_met_monthly.csv.gz"))
+           filename = file.path(path, paste0(id, suffix))
            readr::read_csv(filename, show_col_types = FALSE)
          }) |>
     dplyr::bind_rows()
@@ -762,20 +762,19 @@ fetch_buoys <- function(buoy = buoy_lut()$id,
 
 
 #' Export the annual (or monthly) data in a wide format
-#' @param x aggregated dataset
 #' @return wide tibble of aggregated data
-export_buoy = function(){
+export_buoy = function(by = c("month", "year")[2]){
   
   src = c("met", "ctd", "optics", "rtsc", "adcp")
   xx = sapply(src, 
               function(s){
                 glue = sprintf('BUOY_{buoy}.%s.{.value}', s)
                 r = switch (s,
-                  "met" = read_buoy_met(interval = "year"),
-                  "ctd" = read_buoy_ctd(interval = "year"),
-                  "optics" = read_buoy_optics(interval = "year"),
-                  "rtsc" = read_buoy_rtsc(interval = "year"),
-                  "adcp" = read_buoy_adcp(interval = "year")
+                  "met" = read_buoy_met(interval = by),
+                  "ctd" = read_buoy_ctd(interval = by),
+                  "optics" = read_buoy_optics(interval = by),
+                  "rtsc" = read_buoy_rtsc(interval = by),
+                  "adcp" = read_buoy_adcp(interval = by)
                 ) |>
                   tidyr::pivot_wider(names_from = "buoy", 
                                      id_cols = "date",
@@ -785,6 +784,11 @@ export_buoy = function(){
               simplify = FALSE
   )
   
-  purrr::reduce(xx, dplyr::left_join, by = "date")
+  # reorder based upon number of rows (most rows first)
+  n = sapply(xx, nrow)
+  ix = order(n, decreasing = TRUE)
+  xx = xx[ix]
+  purrr::reduce(xx, dplyr::left_join, by = "date") |>
+    dplyr::arrange(date)
   
 }

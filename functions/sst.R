@@ -8,7 +8,7 @@
 aggregate_oisst = function(x = read_oisst(),
                           by = c("month", "year")[2]){
   if (tolower(by[1]) == 'month'){
-    message("oisst comes as monthly aggregation - returning input")
+    # message("oisst comes as monthly aggregation - returning input")
     return(x)
   }
   
@@ -151,18 +151,22 @@ fetch_oisst <- function(x = read_regions(),
 
 
 #' Export the annual (or monthly) data in a wide format
-#' @param x aggregated dataset
+#' @param by character, one of 'year' or 'month'
+#' @param x tibble or NULL, aggregated dataset.  If NULL we read it internally
 #' @return wide tibble of aggregated data
-export_oisst = function(x = aggregate_oisst(by = c("year", "month")[1])){
+export_oisst = function(by = c("year", "month")[1],
+                        x = NULL){
+  
+  if (is.null(x)) x = aggregate_oisst(by = by)
   
   x = dplyr::mutate(x, region = region_shortnames()[region])
   
-  w = x|>
+  x|>
     tidyr::pivot_wider(names_from = "region", 
                        id_cols = "date",
                        names_glue = "{region}.sst.{.value}",
-                       values_from = where(is.numeric))
-  
+                       values_from = where(is.numeric))  |>
+    dplyr::arrange(date)
 }
 
 
