@@ -5,7 +5,7 @@ GOM-series NOAA Interannual Climate Indices
 Indices](https://psl.noaa.gov/data/climateindices/list/)
 
 ``` r
-source("setup.R")
+source("../setup.R")
 ```
 
 ## Atlantic Multidecadal Oscillation (AMO) Index - long version

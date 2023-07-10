@@ -2,7 +2,7 @@ GOM-series paleo reconstructions
 ================
 
 ``` r
-source("setup.R")
+source("../setup.R")
 ```
 
 ### [Gulf of Maine Oxygen and Nitrogen Isotope Data From 1684 - 2013 CE](https://www.ncei.noaa.gov/access/paleo-search/study/36473)

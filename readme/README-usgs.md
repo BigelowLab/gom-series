@@ -2,7 +2,7 @@ GOM-series stream guage data
 ================
 
 ``` r
-source("setup.R")
+source("../setup.R")
 ```
 
 # How to access [USGS Stream Gauge data for Maine](https://waterdata.usgs.gov/me/nwis/rt)
@@ -35,7 +35,7 @@ x <- fetch_usgs(stations, parameter = "00060")
 x
 ```
 
-    ## # A tibble: 136,982 × 4
+    ## # A tibble: 137,070 × 4
     ##    agency_cd site_no  date       discharge
     ##    <chr>     <chr>    <date>         <dbl>
     ##  1 USGS      01021000 1959-10-01      2800
@@ -48,7 +48,7 @@ x
     ##  8 USGS      01021000 1959-10-08      2950
     ##  9 USGS      01021000 1959-10-09      2880
     ## 10 USGS      01021000 1959-10-10      2780
-    ## # ℹ 136,972 more rows
+    ## # ℹ 137,060 more rows
 
 ## Take a look at how much data is available per station
 
@@ -67,13 +67,13 @@ display the min and max monthly discharge. Note that we have a selection
 of 6 metrics summarizing each month.
 
 ``` r
-andro_month = usgs_aggregate(x, by = "month") |>
+andro_month = aggregate_usgs(x, by = "month") |>
   dplyr::mutate(month = format(date, "%b")) |>
   dplyr::filter(site_no == "01059000") |>
   dplyr::glimpse()
 ```
 
-    ## Rows: 1,062
+    ## Rows: 1,063
     ## Columns: 9
     ## $ date    <date> 1928-12-01, 1929-01-01, 1929-03-01, 1929-04-01, 1929-05-01, 1…
     ## $ site_no <chr> "01059000", "01059000", "01059000", "01059000", "01059000", "0…
@@ -111,7 +111,7 @@ ggplot(data = andro_month, aes(x = date, y = min)) +
 We can compute the same for annual summaries.
 
 ``` r
-andro_year = usgs_aggregate(x, by = "year") |>
+andro_year = aggregate_usgs(x, by = "year") |>
   dplyr::filter(site_no == "01059000") |>
   dplyr::glimpse()
 ```

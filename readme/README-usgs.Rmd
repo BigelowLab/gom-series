@@ -8,7 +8,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r, warning = FALSE, message = FALSE}
-source("setup.R")
+source("../setup.R")
 ```
 
 # How to access [USGS Stream Gauge data for Maine](https://waterdata.usgs.gov/me/nwis/rt) 
@@ -45,7 +45,7 @@ ggplot(data=x, aes(x=date, y=discharge)) +
 Here we select one station, "Androscoggin River near Auburn, Maine", and display the min and max monthly discharge.  Note that we have a selection of 6 metrics summarizing each month.
 
 ```{r}
-andro_month = usgs_aggregate(x, by = "month") |>
+andro_month = aggregate_usgs(x, by = "month") |>
   dplyr::mutate(month = format(date, "%b")) |>
   dplyr::filter(site_no == "01059000") |>
   dplyr::glimpse()
@@ -71,7 +71,7 @@ ggplot(data = andro_month, aes(x = date, y = min)) +
 We can compute the same for annual summaries.
 
 ```{r}
-andro_year = usgs_aggregate(x, by = "year") |>
+andro_year = aggregate_usgs(x, by = "year") |>
   dplyr::filter(site_no == "01059000") |>
   dplyr::glimpse()
 ```

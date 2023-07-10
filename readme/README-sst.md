@@ -2,7 +2,7 @@ GOM-series sea surface temperature
 ================
 
 ``` r
-source("setup.R")
+source("../setup.R")
 ```
 
 ### OISST monthly means
@@ -21,7 +21,7 @@ x <- read_oisst() |>
   glimpse()
 ```
 
-    ## Rows: 3,006
+    ## Rows: 3,012
     ## Columns: 9
     ## Groups: region [6]
     ## $ date   <date> 1981-09-01, 1981-09-01, 1981-09-01, 1981-09-01, 1981-09-01, 19…
