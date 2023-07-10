@@ -1,46 +1,43 @@
 GOM-Series
 ================
 
-# Aggregating monthly oceanographic time series from the Gulf of Maine
+# Code Base
 
-# Base functionality for a dataset
+All code is written in [R language](https://www.r-project.org/). The
+[here](https://CRAN.R-project.org/package=here) is used to navigate the
+project data directory and to make the project highly portable. One
+primary file, `setup.R`, is sourced in order to install and load any
+required libraries. Files located in the `functions` subdirectory are
+automatically sourced.
 
--   `fetch_xyz()`
+A number of dataset specific READMEs are stored at the top level of the
+projects.
 
--   `read_xyz()`
+# Local data storage
 
--   `complete_intervals_xyz(by = c("month", "year", ...))`
+We minimize local data storage demand by opting to dynamically fetching
+data online when it is reasonable to do so, and to compress all stored
+files.
 
--   `aggregate_xyz(by = c("month", "year", ...))` (`sixnum`)
+# Datasets
 
--   `export_xyz(variable = "something", form = c("long", "wide"))`
+# Base functionality for each dataset
 
-### Merge exported datasets one wide annual
+-   `fetch_xyz()` downloads a dataset, possibly aggregating to
+    monthly/yearly values, and possibly storing locally
 
-#### sst
+-   `read_xyz()` reads a dataset - possibly by fetching with
+    `fetch_xyz()`
 
--   [ ] sst mean `year, oisst.geobasin.mean, oisst.geobank.mean, ...`
--   [ ] sst min
--   [ ] sst max
--   [ ] sst median
+-   `complete_intervals_xyz(by = c("month", "year"))` clips a dataset to
+    complete intervals only. A month is considered complete with 28 or
+    more days. A year is considered complete with 336 days (daily data)
+    or 12 months (monthly data).
 
-### chlor
+-   `aggregate_xyz(by = c("month", "year", ...))` aggregates by month or
+    year, when possible each parameter is summarized with the `sixnum`
+    function which yields `min`, `q25`,`median`, `'mean`, `q75` and
+    `max`).
 
--   [ ] chlor mean `year, cmems.geobasin.mean, cmems.geobank.mean, ...`
--   [ ] chlor min
--   [ ] chlor max
--   [ ] chlor median
-
-### usgs
-
--   [ ] usgs `year, usgs.123456.mean, usgs.123457.mean, ...`
-
-### buoy
-
--   [ ] buoy `year, buoy.A01.mean.sst, buoy.E01.mean.sst, ...`
-
-### ghcn
-
--   [ ] ghcn
-
--   [ ] indices
+-   `export_xyz(by = c("month", "year"))` exports data into a
+    wide-format suitable for joining with other datasets
