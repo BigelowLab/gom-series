@@ -1,3 +1,22 @@
+#' Read in one of the export files
+#' 
+#' @param by char, one of 'month' or 'year'
+#' @param path, char, the path to the export files
+#' @param scale_it if TRUE then apply the \code{\link[base]{scale} argument to each column
+read_export = function(by = c("year", "month")[1],
+                       path = here::here("data", "export"),
+                       scale_it = FALSE){
+  filename = file.path(path, sprintf("export_%s.csv.gz", by))
+  if (!file.exists(filename)) stop("export file not found:", filename)
+  x = readr::read_csv(filename, show_col_types = FALSE)
+  if (scale_it){
+    nc = ncol(x)
+   x[-1] = scale(x[-1], ...)
+  }
+  x
+}
+
+
 #' Export a suite of datasets to a single wide format.
 #' 
 #' @param what char, vector of datasets to include 
