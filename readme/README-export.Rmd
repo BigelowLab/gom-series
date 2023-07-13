@@ -1,0 +1,29 @@
+---
+title: "Export"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r, warning = FALSE, message = FALSE}
+source("../setup.R")
+```
+
+Each data set function suite has it's own export functionality (by year, month and possibly both) which yields a wide-format table with a leading date column.  A single function, `export()` will export all of the datasets into one table (by year or by month). These may be subsequently read into R using the `read_export()` function.  Below we select columns that include "q75" (75th percentile) and filter for dates from 1950 until recent.  We standardize using the `scale` function which transforms each variable to have a mean of 0 and a standard deviation of 1.  
+
+```{r}
+x = read_export(by = 'year', standardize = TRUE) |>
+                dplyr::select(date, dplyr::contains("q25")) |>
+                dplyr::filter(date >= as.Date("1950-01-01")) |>
+  dplyr::glimpse()
+```
+
+We can plot a heat map for the above.
+```{r}
+plot_export(x, title = "Standardized Q25 by year")
+```
+
+

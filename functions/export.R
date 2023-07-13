@@ -1,18 +1,62 @@
+#' Plot an export data frame
+#'
+#' @param x data frame or tibble of exported data
+#' @return ggplot object
+plot_export = function(x = read_export(by = 'year', standardize = TRUE) |>
+                         dplyr::select(date, dplyr::contains("mean")) |>
+                         dplyr::filter(date >= as.Date("1950-01-01")),
+                       title = 'Standardized Values'){
+  
+  period = if(diff(x$date[1:2]) > 32){
+      'Year'
+    } else {
+      'Month'
+    }
+  
+  long = long_export(x)
+  ggplot2::ggplot(long, ggplot2::aes(name, date)) +
+    ggplot2::geom_tile(ggplot2::aes(fill = value), colour = "#f7f7f7") +
+    ggplot2::scale_fill_distiller(palette = "Spectral", na.value = 'grey90') +
+    ggplot2::labs(x = "", y = "Date", 
+                  title = paste("Standard Score by", period)) +
+    ggplot2::scale_x_discrete(name = "Parameter", 
+                     breaks = ggplot2::waiver(), 
+                     labels = as.character(seq(to = ncol(x)-1)),
+                     guide = guide_axis(angle = 90)) + 
+    ggplot2::theme_bw()
+}
+
+
+#' Pivot an export table to long format
+#' 
+#' @param x tibble of export data
+#' @return tibble in long format
+long_export = function(x = read_export(by = 'year', standardize = TRUE)){
+  tidyr::pivot_longer(x,
+                     !date)
+}
+
+
 #' Read in one of the export files
 #' 
 #' @param by char, one of 'month' or 'year'
 #' @param path, char, the path to the export files
 #' @param scale_it if TRUE then apply the \code{\link[base]{scale} argument to each column
+#' @param standardize logical, if TRUE the pass the variables through the \code{scale}
+#'   function so each variable has a mean of 0 and standard deviation of 1.
+#' @param ... other arguments passed to \code{scale}
+#' @return very wide tibble
 read_export = function(by = c("year", "month")[1],
                        path = here::here("data", "export"),
-                       scale_it = FALSE){
+                       standardize = FALSE, 
+                       ...){
   filename = file.path(path, sprintf("export_%s.csv.gz", by))
   if (!file.exists(filename)) stop("export file not found:", filename)
   x = readr::read_csv(filename, show_col_types = FALSE)
-  if (scale_it){
-    nc = ncol(x)
-   x[-1] = scale(x[-1], ...)
-  }
+  if (standardize){
+    x = x |>
+      dplyr::mutate(dplyr::across(dplyr::where(is.numeric), ~ as.vector(scale(.x, ...)))
+)  }
   x
 }
 
