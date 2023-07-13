@@ -141,7 +141,7 @@ read_gsi <- function(filename = c("Chen_EN4_T200_GSI_1954_2021_monthly.xlsx", "C
 #' @param by character the interval over which to aggregate - one of 'month' or 'year'
 #' @retun a tibble of climate index data
 #' 
-#' 
+#' @export
 aggregate_climate_index <- function(x, 
                             by = c("month", "year")[2]) {
   
@@ -174,6 +174,7 @@ aggregate_climate_index <- function(x,
 #' @param complete_intervals logical if TRUE only returns years that do not have NA values
 #' @return a wide table of aggregated climate index data
 #' 
+#' @export
 export_climate_indices <- function(by = c("year", "month")[1],
                                    complete_intervals = TRUE) {
   
