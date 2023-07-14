@@ -110,6 +110,7 @@ aggregate_ghcn = function(x = fetch_ghcn(),
                      v
                    }) |>
           dplyr::bind_cols()
+        # now bind to tbl
         dplyr::select(tbl, dplyr::all_of(c("interval_", "STATION", "NAME"))) |>
           dplyr::slice(1) |>
           dplyr::bind_cols(v)

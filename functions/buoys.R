@@ -158,6 +158,24 @@ met_query_uri = function(buoyid = "$BUOYID", escape = TRUE){
   uri
 }
 
+# #' Aggregate columns by interval
+# #' 
+# #' @param x tibble of data
+# #' @param by char the interval overwich to aggregate
+# #' @return summary tibble 
+# aggregate_met = function(x, by = c("month", "year")[1])) {
+#   
+#   if (nrow(x) == 0) return(x)
+#   
+#   fmt = switch(tolower(by[1]),
+#                "month" = "%Y-%m-01",
+#                "year" = "%Y-01-01")
+#   
+#   dplyr::mutate(x, date = format(time, fmt)) |>
+#     dplyr::group_by(station, date) |>
+#     
+# }
+# 
 
 #' Aggregate columns by interval
 #' 
@@ -171,10 +189,30 @@ met_aggregate = function(x, by = c("month", "year")[1]){
   fmt = switch(tolower(by[1]),
                "month" = "%Y-%m-01",
                "year" = "%Y-01-01")
-  
+  # first two columns should be station and time
+  ix <- sapply(x, is.numeric)
+  PARAMS <- colnames(x)[ix]
   dplyr::mutate(x, date = format(time, fmt)) |>
-    dplyr::group_by(date) |>
-    dplyr::summarize(dplyr::across(dplyr::where(is.numeric), ~mean(., na.rm = TRUE)))
+    dplyr::group_by(station, date) |>
+    dplyr::group_map(
+      function(tbl, key, params = NULL){
+        v = lapply(params,
+                   function(p){
+                     v = sixnum(tbl |> dplyr::pull(dplyr::all_of(p))) |>
+                       as.list() |>
+                       dplyr::as_tibble()
+                     names(v) <- paste(p, names(v), sep = ".")
+                     v
+                   }) #|>
+          dplyr::bind_cols()
+        # now add date and station
+        tbl |> 
+          dplyr::slice(1) |>
+          dplyr::select(station, date) |>
+          dplyr::bind_cols(v)
+      }, .keep = TRUE, params = PARAMS) |>
+    dplyr::bind_rows()
+    
 }
 
 #' Read raw met data for a given buoy

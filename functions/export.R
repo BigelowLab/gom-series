@@ -2,9 +2,10 @@
 #'
 #' @param x data frame or tibble of exported data
 #' @return ggplot object
-plot_export = function(x = read_export(by = 'year', standardize = TRUE) |>
+plot_export = function(x = read_export(by = 'year') |>
                          dplyr::select(date, dplyr::contains("mean")) |>
-                         dplyr::filter(date >= as.Date("1950-01-01")),
+                         dplyr::filter(date >= as.Date("1950-01-01")) |>
+                         standardize_export(),
                        title = 'Standardized Values'){
   
   period = if(diff(x$date[1:2]) > 32){
@@ -13,17 +14,22 @@ plot_export = function(x = read_export(by = 'year', standardize = TRUE) |>
       'Month'
     }
   
-  long = long_export(x)
-  ggplot2::ggplot(long, ggplot2::aes(name, date)) +
+  
+  cnames = dplyr::select(x, -date) |> colnames()
+  long = long_export(x) |>
+    dplyr::mutate(name = factor(name, levels = cnames))
+  
+  ggplot2::ggplot(long, ggplot2::aes(date, name)) +
     ggplot2::geom_tile(ggplot2::aes(fill = value), colour = "#f7f7f7") +
-    ggplot2::scale_fill_distiller(palette = "Spectral", na.value = 'grey90') +
-    ggplot2::labs(x = "", y = "Date", 
+    ggplot2::scale_fill_gradient2(low="blue", high="red", na.value="grey80", name="") + 
+    ggplot2::labs(x = "Date", y = "", 
                   title = paste("Standard Score by", period)) +
-    ggplot2::scale_x_discrete(name = "Parameter", 
-                     breaks = ggplot2::waiver(), 
-                     labels = as.character(seq(to = ncol(x)-1)),
-                     guide = guide_axis(angle = 90)) + 
-    ggplot2::theme_bw()
+    ggplot2::scale_y_discrete(name = "Parameter", 
+                     #breaks = ggplot2::waiver(), 
+                     #labels = levels(cnames),
+                     guide = guide_axis(angle = 0)) + 
+    ggplot2::theme_bw() + 
+    ggplot2::theme(axis.text.x = element_text(size=10))
 }
 
 
@@ -41,7 +47,6 @@ long_export = function(x = read_export(by = 'year', standardize = TRUE)){
 #' 
 #' @param by char, one of 'month' or 'year'
 #' @param path, char, the path to the export files
-#' @param scale_it if TRUE then apply the \code{\link[base]{scale} argument to each column
 #' @param standardize logical, if TRUE the pass the variables through the \code{scale}
 #'   function so each variable has a mean of 0 and standard deviation of 1.
 #' @param ... other arguments passed to \code{scale}
@@ -54,10 +59,19 @@ read_export = function(by = c("year", "month")[1],
   if (!file.exists(filename)) stop("export file not found:", filename)
   x = readr::read_csv(filename, show_col_types = FALSE)
   if (standardize){
-    x = x |>
-      dplyr::mutate(dplyr::across(dplyr::where(is.numeric), ~ as.vector(scale(.x, ...)))
-)  }
+    x = standardize_export(x, ...)
+  }
   x
+}
+
+#' Standardize export data such that each variable has a mean of 0 and a standard deviation of 1
+#' 
+#' @param x wide export data (tibble with leading date column)
+#' @param ... other arguments passed to \code{scale}
+#' @param input table with numeric variables standardized
+standardize_export = function(x, ...){
+  x |>
+    dplyr::mutate(dplyr::across(dplyr::where(is.numeric), ~ as.vector(scale(.x, ...))))
 }
 
 
@@ -67,11 +81,11 @@ read_export = function(by = c("year", "month")[1],
 #' @param by char the interval to aggregate over (one of 'year' or 'month')
 #' @param ofile char or NULL, if not NULL then write to this file. If NULL write nothing
 #' @return a very very very wide aggregate table
-export = function(what = c("all","sst", "chlor", "usgs", "ghcn", "indices", "buoys")[1],
+export = function(what = c("all","sst", "chlor", "usgs", "ghcn", "climate", "hab", "buoys")[1],
                   by = c("year", "month")[1], 
                   ofile = here::here("data", "export", sprintf("export_%s.csv.gz", by))){
  
-  if ("all" %in% what) what = c("sst", "chlor", "usgs", "ghcn", "indices", "buoys")
+  if ("all" %in% what) what = c("sst", "chlor", "usgs", "ghcn", "climate", "hab", "buoys")
   
   xx = sapply(what,
               function(w){
@@ -81,11 +95,14 @@ export = function(what = c("all","sst", "chlor", "usgs", "ghcn", "indices", "buo
                        "usgs" = export_usgs(by = by),
                        "ghcn" = export_ghcn(by = by),
                        "buoys" = export_buoy(by = by),
-                       "indices" = export_climate_indices(by = by) 
+                       "climate" = export_climate_indices(by = by),
+                       "hab" = if(by == "month"){NULL} else{export_hab_index()}
                 ) # switch
               }, simplify = FALSE)
   
   # reorder based upon number of rows (most rows first)
+  isnull = sapply(xx, is.null)
+  xx = xx[!isnull]
   n = sapply(xx, nrow)
   ix = order(n, decreasing = TRUE)
   xx = xx[ix]
