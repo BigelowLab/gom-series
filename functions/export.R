@@ -1,12 +1,14 @@
 #' Plot an export data frame
 #'
 #' @param x data frame or tibble of exported data
+#' @param purge_empty, logical if TRUE drop empty columns (populated by NAs only)
 #' @return ggplot object
 plot_export = function(x = read_export(by = 'year') |>
                          dplyr::select(date, dplyr::contains("mean")) |>
                          dplyr::filter(date >= as.Date("1950-01-01")) |>
                          standardize_export(),
-                       title = 'Standardized Values'){
+                       purge_empty = TRUE,
+                       title = NULL){
   
   period = if(diff(x$date[1:2]) > 32){
       'Year'
@@ -14,6 +16,10 @@ plot_export = function(x = read_export(by = 'year') |>
       'Month'
     }
   
+  if (is.null(title)) title = paste("Standard Score by", period)
+  
+  
+  if (purge_empty) x = purge_export(x)
   
   cnames = dplyr::select(x, -date) |> colnames()
   long = long_export(x) |>
@@ -22,8 +28,9 @@ plot_export = function(x = read_export(by = 'year') |>
   ggplot2::ggplot(long, ggplot2::aes(date, name)) +
     ggplot2::geom_tile(ggplot2::aes(fill = value), colour = "#f7f7f7") +
     ggplot2::scale_fill_gradient2(low="blue", high="red", na.value="grey80", name="") + 
-    ggplot2::labs(x = "Date", y = "", 
-                  title = paste("Standard Score by", period)) +
+    ggplot2::labs(x = "Date", 
+                  y = "", 
+                  title = title) +
     ggplot2::scale_y_discrete(name = "Parameter", 
                      #breaks = ggplot2::waiver(), 
                      #labels = levels(cnames),
@@ -33,6 +40,16 @@ plot_export = function(x = read_export(by = 'year') |>
 }
 
 
+#' Drop columns that are exclusively filled with NA
+#' 
+#' @param x tibble of exported data
+#' @return the input tibble but with 'empty' columns dropped
+purge_export = function(x){
+  empty = sapply(x, function(column) all(is.na(column)))
+  x[,!empty]
+} 
+
+
 #' Pivot an export table to long format
 #' 
 #' @param x tibble of export data
@@ -40,6 +57,18 @@ plot_export = function(x = read_export(by = 'year') |>
 long_export = function(x = read_export(by = 'year', standardize = TRUE)){
   tidyr::pivot_longer(x,
                      !date)
+}
+
+
+
+#' Standardize export data such that each variable has a mean of 0 and a standard deviation of 1
+#' 
+#' @param x wide export data (tibble with leading date column)
+#' @param ... other arguments passed to \code{scale}
+#' @param input table with numeric variables standardized
+standardize_export = function(x, ...){
+  x |>
+    dplyr::mutate(dplyr::across(dplyr::where(is.numeric), ~ as.vector(scale(.x, ...))))
 }
 
 
@@ -62,16 +91,6 @@ read_export = function(by = c("year", "month")[1],
     x = standardize_export(x, ...)
   }
   x
-}
-
-#' Standardize export data such that each variable has a mean of 0 and a standard deviation of 1
-#' 
-#' @param x wide export data (tibble with leading date column)
-#' @param ... other arguments passed to \code{scale}
-#' @param input table with numeric variables standardized
-standardize_export = function(x, ...){
-  x |>
-    dplyr::mutate(dplyr::across(dplyr::where(is.numeric), ~ as.vector(scale(.x, ...))))
 }
 
 

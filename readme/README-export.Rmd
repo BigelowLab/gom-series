@@ -23,21 +23,30 @@ x = read_export(by = 'year') |>
 ```
 
 We can plot a heat map for the above.
-```{r, out.width = "100%", fig.height = 8}
-plot_export(x, title = "Standardized Q25 by year")
+```{r, out.width = "100%", fig.height = 12}
+plot_export(x, title = "Standardized Q25 by year", purge_empty = FALSE)
 ```
 
 
-Other descriptive metircs can be shown.
+Other descriptive metrics can be shown.  This time we drop the buoy data and purge empty rows to improve readability.
 
-```{r, out.width = "100%", fig.height = 8}
+```{r, out.width = "100%", fig.height = 12}
 read_export(by = 'year') |>
-                dplyr::select(date, dplyr::contains("q75")) |>
+                dplyr::select(date, dplyr::contains("q75") & !dplyr::starts_with("BUOY")) |>
                 dplyr::filter(date >= as.Date("1950-01-01")) |>
                 standardize_export() |>
-  plot_export(title = "Standardized Q75 by year")
+  plot_export(title = "Standardized Q75 by year", purge = TRUE)
 ```
 
 
+And now with buoys only, note that we filter for dates after 2000.
+
+```{r, out.width = "100%", fig.height = 12}
+read_export(by = 'year') |>
+                dplyr::select(date, dplyr::starts_with("BUOY") & dplyr::contains("median") ) |>
+                dplyr::filter(date >= as.Date("2000-01-01")) |>
+                standardize_export() |>
+  plot_export(title = "Standardized median by year", purge = FALSE)
+```
 
 
