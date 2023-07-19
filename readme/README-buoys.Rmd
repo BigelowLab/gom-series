@@ -56,15 +56,15 @@ Read one or more buoy met data files using `read_buoy_met()`.  By default all bu
 ```{r}
 x <- read_buoy_met() |>
   dplyr::mutate(month = format(date, "%b"), .after = date) |>
-  dplyr::group_by(buoy)
+  dplyr::group_by(station)
 
-ggplot(data = x, aes(x = date, y = wind_speed, color = buoy, shape = buoy)) +
+ggplot(data = x, aes(x = date, y = wind_speed.mean, color = station, shape = station)) +
   geom_line()
 ```
 
 ```{r}
 ggplot(data = filter(x, month == 'Aug'), 
-       aes(x = date, y = air_temperature, color = buoy)) +
+       aes(x = date, y = air_temperature.mean, color = station)) +
   geom_point() + 
   geom_smooth(method = "lm", se=FALSE) +
   labs(x = "year", y = 'Air Temp (C)', title = "August - mean monthly air temperature")
@@ -88,12 +88,12 @@ Read one or more buoy CTD data files using `read_buoy_ctd()`.  By default all bu
 x <- read_buoy_ctd() |>
   dplyr::mutate(depth = factor(as.integer(depth))) |>
   dplyr::mutate(month = format(date, "%b"), .after = date) |>
-  dplyr::group_by(buoy)
+  dplyr::group_by(station)
 
-ggplot(data = x, aes(x = date, y = temperature, color = depth)) +
+ggplot(data = x, aes(x = date, y = temperature.mean, color = depth)) +
   scale_y_reverse()  + 
   geom_line() + 
-  facet_wrap(~buoy)
+  facet_wrap(~station)
 ```
 
 ## OPTICS at depth (solar_zenith_angle, Ed_PAR, chlorophyll)
@@ -113,16 +113,16 @@ Read one or more buoy CTD data files using `read_buoy_ctd()`.  By default all bu
 x <- read_buoy_optics() |>
   dplyr::mutate(month = format(date, "%b"), .after = date) |>
   dplyr::mutate(water_depth = factor(water_depth)) |>
-  dplyr::group_by(buoy)
+  dplyr::group_by(station)
 
-count(x, buoy, water_depth)
+count(x, station, water_depth)
 ```
 
 ```{r}
-ggplot(data = x, aes(x = date, y = chlorophyll, color = water_depth)) +
+ggplot(data = x, aes(x = date, y = chlorophyll.mean, color = water_depth)) +
   scale_y_log10() + 
   geom_line() + 
-  facet_wrap(~buoy)
+  facet_wrap(~station)
 ```
 
 
@@ -147,15 +147,15 @@ Read one or more buoy ADCP data files using `read_buoy_adcp()`.  By default all 
 x <- read_buoy_adcp() |>
   dplyr::mutate(month = format(date, "%b"), .after = date) |>
   dplyr::mutate(water_depth = factor(water_depth)) |>
-  dplyr::group_by(buoy)
+  dplyr::group_by(station)
 
-count(x, buoy, water_depth)
+count(x, station, water_depth)
 ```
 
 ```{r}
-ggplot(data = x, aes(x = date, y = current_u, color = water_depth)) +
+ggplot(data = x, aes(x = date, y = current_u.mean, color = water_depth)) +
   geom_line() + 
-  facet_wrap(~buoy)
+  facet_wrap(~station)
 ```
 
 ## RTSC at surface (current_speed, current_direction, temperature)
@@ -168,14 +168,14 @@ Read one or more buoy RTSC data files using `read_buoy_rtsc()`.  By default all 
 x <- read_buoy_rtsc() |>
   dplyr::mutate(month = format(date, "%b"), .after = date) |>
   dplyr::mutate(water_depth = factor(depth)) |>
-  dplyr::group_by(buoy)
+  dplyr::group_by(station)
 
-count(x, buoy, depth)
+count(x, station, depth)
 ```
 
 ```{r}
-ggplot(data = x, aes(x = date, y = current_direction_u)) +
+ggplot(data = x, aes(x = date, y = current_direction_u.mean)) +
   geom_line() + 
   geom_smooth(method = "lm", se=FALSE) +
-  facet_wrap(~buoy)
+  facet_wrap(~station)
 ```

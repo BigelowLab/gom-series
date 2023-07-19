@@ -66,9 +66,9 @@ all buoys are read and boundinto one table.
 ``` r
 x <- read_buoy_met() |>
   dplyr::mutate(month = format(date, "%b"), .after = date) |>
-  dplyr::group_by(buoy)
+  dplyr::group_by(station)
 
-ggplot(data = x, aes(x = date, y = wind_speed, color = buoy, shape = buoy)) +
+ggplot(data = x, aes(x = date, y = wind_speed.mean, color = station, shape = station)) +
   geom_line()
 ```
 
@@ -78,7 +78,7 @@ ggplot(data = x, aes(x = date, y = wind_speed, color = buoy, shape = buoy)) +
 
 ``` r
 ggplot(data = filter(x, month == 'Aug'), 
-       aes(x = date, y = air_temperature, color = buoy)) +
+       aes(x = date, y = air_temperature.mean, color = station)) +
   geom_point() + 
   geom_smooth(method = "lm", se=FALSE) +
   labs(x = "year", y = 'Air Temp (C)', title = "August - mean monthly air temperature")
@@ -112,7 +112,7 @@ all buoys are read and bound into one table.
 x <- read_buoy_ctd() |>
   dplyr::mutate(depth = factor(as.integer(depth))) |>
   dplyr::mutate(month = format(date, "%b"), .after = date) |>
-  dplyr::group_by(buoy)
+  dplyr::group_by(station)
 ```
 
     ## Warning: There was 1 warning in `dplyr::mutate()`.
@@ -121,13 +121,11 @@ x <- read_buoy_ctd() |>
     ## ! NAs introduced by coercion to integer range
 
 ``` r
-ggplot(data = x, aes(x = date, y = temperature, color = depth)) +
+ggplot(data = x, aes(x = date, y = temperature.mean, color = depth)) +
   scale_y_reverse()  + 
   geom_line() + 
-  facet_wrap(~buoy)
+  facet_wrap(~station)
 ```
-
-    ## Warning: Removed 6 rows containing missing values (`geom_line()`).
 
 ![](README-buoys_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
 
@@ -153,25 +151,25 @@ measures are not at the surface but instead are at varying depths.
 x <- read_buoy_optics() |>
   dplyr::mutate(month = format(date, "%b"), .after = date) |>
   dplyr::mutate(water_depth = factor(water_depth)) |>
-  dplyr::group_by(buoy)
+  dplyr::group_by(station)
 
-count(x, buoy, water_depth)
+count(x, station, water_depth)
 ```
 
     ## # A tibble: 4 × 3
-    ## # Groups:   buoy [4]
-    ##   buoy  water_depth     n
-    ##   <chr> <fct>       <int>
-    ## 1 B01   62             59
-    ## 2 E01   100            41
-    ## 3 I01   100            43
-    ## 4 M01   285            39
+    ## # Groups:   station [4]
+    ##   station water_depth     n
+    ##   <chr>   <fct>       <int>
+    ## 1 B01     62             59
+    ## 2 E01     100            41
+    ## 3 I01     100            43
+    ## 4 M01     285            39
 
 ``` r
-ggplot(data = x, aes(x = date, y = chlorophyll, color = water_depth)) +
+ggplot(data = x, aes(x = date, y = chlorophyll.mean, color = water_depth)) +
   scale_y_log10() + 
   geom_line() + 
-  facet_wrap(~buoy)
+  facet_wrap(~station)
 ```
 
     ## Warning: Removed 2 rows containing missing values (`geom_line()`).
@@ -199,22 +197,24 @@ default all buoys are read and bound into one table.
 x <- read_buoy_adcp() |>
   dplyr::mutate(month = format(date, "%b"), .after = date) |>
   dplyr::mutate(water_depth = factor(water_depth)) |>
-  dplyr::group_by(buoy)
+  dplyr::group_by(station)
 
-count(x, buoy, water_depth)
+count(x, station, water_depth)
 ```
 
     ## # A tibble: 1 × 3
-    ## # Groups:   buoy [1]
-    ##   buoy  water_depth     n
-    ##   <chr> <fct>       <int>
-    ## 1 B01   62             29
+    ## # Groups:   station [1]
+    ##   station water_depth     n
+    ##   <chr>   <fct>       <int>
+    ## 1 B01     62            720
 
 ``` r
-ggplot(data = x, aes(x = date, y = current_u, color = water_depth)) +
+ggplot(data = x, aes(x = date, y = current_u.mean, color = water_depth)) +
   geom_line() + 
-  facet_wrap(~buoy)
+  facet_wrap(~station)
 ```
+
+    ## Warning: Removed 12 rows containing missing values (`geom_line()`).
 
 ![](README-buoys_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
 
@@ -229,27 +229,27 @@ default all buoys are read and bound into one table.
 x <- read_buoy_rtsc() |>
   dplyr::mutate(month = format(date, "%b"), .after = date) |>
   dplyr::mutate(water_depth = factor(depth)) |>
-  dplyr::group_by(buoy)
+  dplyr::group_by(station)
 
-count(x, buoy, depth)
+count(x, station, depth)
 ```
 
     ## # A tibble: 6 × 3
-    ## # Groups:   buoy [6]
-    ##   buoy  depth     n
-    ##   <chr> <dbl> <int>
-    ## 1 B01       2   228
-    ## 2 E01       2   223
-    ## 3 F01       2   214
-    ## 4 I01       2   224
-    ## 5 M01       2   201
-    ## 6 N01       2   151
+    ## # Groups:   station [6]
+    ##   station depth     n
+    ##   <chr>   <dbl> <int>
+    ## 1 B01         2   229
+    ## 2 E01         2   224
+    ## 3 F01         2   215
+    ## 4 I01         2   225
+    ## 5 M01         2   202
+    ## 6 N01         2   151
 
 ``` r
-ggplot(data = x, aes(x = date, y = current_direction_u)) +
+ggplot(data = x, aes(x = date, y = current_direction_u.mean)) +
   geom_line() + 
   geom_smooth(method = "lm", se=FALSE) +
-  facet_wrap(~buoy)
+  facet_wrap(~station)
 ```
 
     ## `geom_smooth()` using formula = 'y ~ x'
