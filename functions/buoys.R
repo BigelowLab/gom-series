@@ -158,24 +158,50 @@ met_query_uri = function(buoyid = "$BUOYID", escape = TRUE){
   uri
 }
 
-# #' Aggregate columns by interval
-# #' 
-# #' @param x tibble of data
-# #' @param by char the interval overwich to aggregate
-# #' @return summary tibble 
-# aggregate_met = function(x, by = c("month", "year")[1])) {
-#   
-#   if (nrow(x) == 0) return(x)
-#   
-#   fmt = switch(tolower(by[1]),
-#                "month" = "%Y-%m-01",
-#                "year" = "%Y-01-01")
-#   
-#   dplyr::mutate(x, date = format(time, fmt)) |>
-#     dplyr::group_by(station, date) |>
-#     
-# }
-# 
+#' Aggregate columns by interval
+#' 
+#' @param x tibble of data
+#' @param by char the interval over which to aggregate
+#' @param where_fun function, the function used to select which columns are computed
+#' @return summary tibble 
+aggregate_buoy = function(x, by = c("month", "year")[1]) {
+  if (nrow(x) == 0) return(x)
+  
+  fmt = switch(tolower(by[1]),
+               "month" = "%Y-%m-01",
+               "year" = "%Y-01-01")
+  # first two columns should be station and time
+  cnames = colnames(x)
+  has_depth = "depth" %in% cnames
+  ix <- sapply(x, is.numeric) & !(cnames %in% c("depth", "water_depth"))
+  groupies = c("station", "date", "depth", "water_depth")
+  
+  PARAMS <- colnames(x)[ix]
+  dplyr::mutate(x, date = format(time, fmt)) |>
+    dplyr::group_by(dplyr::across(dplyr::any_of(groupies))) |>
+    dplyr::group_map(
+      function(tbl, key, params = NULL){
+        v = lapply(params,
+                   function(p){
+                     v = sixnum(tbl |> dplyr::pull(dplyr::all_of(p))) |>
+                       as.list() |>
+                       dplyr::as_tibble()
+                     names(v) <- paste(p, names(v), sep = ".")
+                     v
+                   }) #|>
+        dplyr::bind_cols()
+        # now add date and station
+        tbl |> 
+          dplyr::slice(1) |>
+          dplyr::select(dplyr::any_of(groupies)) |>
+          dplyr::bind_cols(v)
+      }, .keep = TRUE, params = PARAMS) |>
+    dplyr::bind_rows()
+}
+
+
+
+######## MET
 
 #' Aggregate columns by interval
 #' 
@@ -246,14 +272,14 @@ fetch_buoy_met = function(buoy = "B01",
   
   yfile = file.path(path, paste0(buoy, "_met_yearly.csv.gz"))
   y = complete_intervals_buoys(x, by = "year") |>
-    met_aggregate(by = "year") |>
-    dplyr::mutate(buoy = buoy, .before = 1) |>
+    aggregate_buoy(by = "year") |>
+    #dplyr::mutate(buoy = buoy, .before = 1) |>
     readr::write_csv(yfile)
   
   mfile = file.path(path, paste0(buoy, "_met_monthly.csv.gz"))
   complete_intervals_buoys(x, by = "month") |>
-    met_aggregate(by = "month") |>
-    dplyr::mutate(buoy = buoy, .before = 1) |>
+    aggregate_buoy(by = "month") |>
+    #dplyr::mutate(buoy = buoy, .before = 1) |>
     readr::write_csv(mfile)
 }
 
@@ -328,6 +354,9 @@ ctd_aggregate = function(x, by = c("month", "year")[1]){
                "month" = "%Y-%m-01",
                "year" = "%Y-01-01")
   
+  where_compute = function(x){
+    is.numeric(x) 
+  }
   dplyr::mutate(x, date = format(time, fmt)) |>
     dplyr::group_by(date) |>
     dplyr::summarize(dplyr::across(dplyr::where(is.numeric), ~mean(., na.rm = TRUE)),
@@ -366,13 +395,13 @@ fetch_buoy_ctd = function(buoy = "B01",
     drop_suffix()
   
   y = complete_intervals_buoys(r, by = "year")  |>
-    ctd_aggregate(by = "year") |>
-    dplyr::mutate(buoy = buoy, .before = 1) |>
+    aggregate_buoy(by = "year") |>
+    #dplyr::mutate(buoy = buoy, .before = 1) |>
     readr::write_csv(yfile)
   
   complete_intervals_buoys(r, by = "month")|>
-    ctd_aggregate(by = "month") |>
-    dplyr::mutate(buoy = buoy, .before = 1) |>
+    aggregate_buoy(by = "month") |>
+    #dplyr::mutate(buoy = buoy, .before = 1) |>
     readr::write_csv(mfile)
 }
   
@@ -380,7 +409,7 @@ fetch_buoy_ctd = function(buoy = "B01",
 #' Read monthly ctd data
 #' 
 #' @param buoy char, one or more buoy id codes
-#' @param interval cahr the interval aggregate to read
+#' @param interval char the interval aggregate to read
 #' @param path char, the path to the data
 #' @return tibble of monthly met means  If more than one buoy is requested they
 #'   are bound into one tibble
@@ -487,15 +516,15 @@ fetch_buoy_optics= function(buoy = "B01",
     mask_qc() |>
     drop_suffix()
   
-  y = buoy_complete_intervals(r, by = "year") |>
-    aggregate_optics(by = "year") |>
-    dplyr::mutate(buoy = buoy, .before = 1) |>
+  y = complete_intervals_buoys(r, by = "year") |>
+    aggregate_buoy(by = "year") |>
+    #dplyr::mutate(buoy = buoy, .before = 1) |>
     readr::write_csv(yfile)
 
-  buoy_complete_intervals(r, by = "month") |>
-    aggregate_optics(by = "month") |>
-      dplyr::mutate(buoy = buoy, .before = 1) |>
-      readr::write_csv(mfile)
+  complete_intervals_buoys(r, by = "month") |>
+    aggregate_buoy(by = "month") |>
+    #dplyr::mutate(buoy = buoy, .before = 1) |>
+    readr::write_csv(mfile)
 }
 
 
@@ -597,7 +626,7 @@ read_raw_rtsc <- function(filename){
 #' @param buoy char, the buoy id
 #' @param ofile char, the path to save data to
 #' @return tibble of data
-fetch_buoy_rtsc= function(buoy = "B01", 
+fetch_buoy_rtsc = function(buoy = "B01", 
                             path = here::here("data","buoy")){
   
   mfile = file.path(path, paste0(buoy, "_rtsc_monthly.csv.gz"))
@@ -611,14 +640,16 @@ fetch_buoy_rtsc= function(buoy = "B01",
     mask_qc() |>
     drop_suffix() 
 
-  y = buoy_complete_intervals(x, by = "year") |>  
-    aggregate_rtsc(by = 'year') |>
-    dplyr::mutate(buoy = buoy, .before = 1) |>
+  y = complete_intervals_buoys(x, by = "year") |>  
+    aggregate_buoy(by = 'year') |>
+    #aggregate_rtsc(by = 'year') |>
+    #dplyr::mutate(buoy = buoy, .before = 1) |>
     readr::write_csv(yfile)
 
-  buoy_complete_intervals(x, by = "month") |>  
-    aggregate_rtsc(by = 'month') |>
-    dplyr::mutate(buoy = buoy, .before = 1) |>
+  complete_intervals_buoys(x, by = "month") |>  
+    aggregate_buoy(by = 'month') |>
+    #aggregate_rtsc(by = 'month') |>
+    #dplyr::mutate(buoy = buoy, .before = 1) |>
     readr::write_csv(mfile)
 }
 
@@ -732,17 +763,18 @@ fetch_buoy_adcp= function(buoy = "B01",
     mask_qc() |>
     drop_suffix()
   
-  y = buoy_complete_intervals(x, by = "year") |>  
-    aggregate_adcp(by = 'year') |>
-    dplyr::mutate(buoy = buoy, .before = 1) |>
+  y = complete_intervals_buoys(x, by = "year") |>  
+    aggregate_buoy(by = 'year') |>
+    #aggregate_adcp(by = 'year') |>
+    #dplyr::mutate(buoy = buoy, .before = 1) |>
     readr::write_csv(yfile)
   
-  buoy_complete_intervals(x, by = "month") |>  
-    aggregate_adcp(by = 'month') |>
-    dplyr::mutate(buoy = buoy, .before = 1) |>
+  complete_intervals_buoys(x, by = "month") |>  
+    aggregate_buoy(by = 'month') |>
+    #aggregate_adcp(by = 'month') |>
+    #dplyr::mutate(buoy = buoy, .before = 1) |>
     readr::write_csv(mfile)
 
-  x
 }
 
 
@@ -784,6 +816,8 @@ read_buoy_adcp <- function(buoy = buoy_lut()$id,
 #' @return NULL
 fetch_buoys <- function(buoy = buoy_lut()$id,
                          what = c("met", "ctd", "rtsc", "optics", "adcp")){
+  
+  if ("all" %in% what) what = c("met", "ctd", "rtsc", "optics", "adcp")
   cat("updating buoys:", paste(buoy, collapse = ", "), "\n") 
   for (wh in what){
     cat("updating", wh, "\n")
@@ -806,7 +840,7 @@ export_buoy = function(by = c("month", "year")[2]){
   src = c("met", "ctd", "optics", "rtsc", "adcp")
   xx = sapply(src, 
               function(s){
-                glue = sprintf('BUOY_{buoy}.%s.{.value}', s)
+                glue = sprintf('BUOY_{station}.%s.{.value}', s)
                 r = switch (s,
                   "met" = read_buoy_met(interval = by),
                   "ctd" = read_buoy_ctd(interval = by),
@@ -814,9 +848,10 @@ export_buoy = function(by = c("month", "year")[2]){
                   "rtsc" = read_buoy_rtsc(interval = by),
                   "adcp" = read_buoy_adcp(interval = by)
                 ) |>
-                  tidyr::pivot_wider(names_from = "buoy", 
+                  tidyr::pivot_wider(names_from = "station", 
                                      id_cols = "date",
                                      names_glue = glue,
+                                     values_fn = mean,
                                      values_from = where(is.numeric))
               },
               simplify = FALSE
