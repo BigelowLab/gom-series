@@ -83,7 +83,7 @@ complete_intervals_oisst = function(x = read_oisst(),
 #' @param path char the path to the file
 #' @return tibble of date, region and sst params
 read_oisst = function(filename =  "oisst.csv.gz",
-                            path = here::here("data", "sst")){
+                      path = here::here("data", "sst")){
   
   readr::read_csv(file.path(path[1], filename[1]), col_types = 'Dcnnnnnn')
 }

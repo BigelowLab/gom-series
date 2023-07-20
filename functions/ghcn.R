@@ -31,7 +31,7 @@ fetch_ghcn_inventory = function(stations = ghcn_lut()){
 
 
 #' Retrieve data for one or more stations
-#'
+#' 
 #' @param stations sf tibble of stations identifiers
 #' @return sf tibble
 fetch_ghcn = function(stations = ghcn_lut()){
@@ -41,6 +41,9 @@ fetch_ghcn = function(stations = ghcn_lut()){
 
 
 #' A wrapper around  \code{fetch_ghcn}
+#'
+#' We don't store ghcn as it is quick to fetch, so this is a wrapper around
+#' \code{\link[ghcnd]{fetch_stations}}.
 #'
 #' @param ... arguments passed to \code{fetch_ghcn}
 #' @return sf tibble

@@ -180,27 +180,34 @@ export_climate_indices <- function(by = c("year", "month")[1],
   
   amo <- read_amo() |>
     aggregate_climate_index(by = by) |>
-    dplyr::mutate(index = "amo")
+    dplyr::mutate(index = "amo") |>
+    dplyr::rename(value = amo)
   
   nao <- read_nao() |>
     aggregate_climate_index(by = by) |>
-    dplyr::mutate(index = "nao")
+    dplyr::mutate(index = "nao")|>
+    dplyr::rename(value = nao)
   
   gsi <- read_gsi() |>
     aggregate_climate_index(by = by) |>
-    dplyr::mutate(index = "gsi")
+    dplyr::mutate(index = "gsi") |>
+    dplyr::rename(value = gsi)
   
   r <- bind_rows(amo, nao, gsi) |>
     tidyr::pivot_wider(id_cols = dplyr::all_of("date"),
                        names_from = "index",
-                       names_glue = "{index}.{.value}",
+                       names_glue = "{index}.index",
                        values_from = where(is.numeric))  |>
     dplyr::arrange(date)
   
-  if (complete_intervals) {
-    r <- r |>
-      tidyr::drop_na()
-  }
+  # we don't want to drop NAs actually, but we do need to make sure that when we compute
+  # an annual index from the monthlies that we have 12 minths each year.  In this case
+  # each of amo, nao and gsi start on Jan 1 (of different years) and end on Dec 31
+  # (of different years)
+  #if (complete_intervals) {
+  #  r <- r |>
+  #    tidyr::drop_na()
+  #}
   
   return(r)
   
