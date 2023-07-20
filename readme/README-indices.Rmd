@@ -68,24 +68,37 @@ read_gsi() |>
 ```
 
 
+Alternatively, one can read all three at once in either wide or long format.
+
+```{r}
+read_climate_indices() |>
+  glimpse()
+
+read_climate_indices(form = "long") |>
+  glimpse()
+```
+
+
 # Aggregating and exporting
 
 ## Aggregate a climate index by year
 
-
 ```{r}
-
-read_gsi() |>
-  aggregate_climate_index() |>
+year = aggregate_climate_indices(by = 'year') |>
   glimpse()
 ```
 
-## Export a wide table with all three climate indices aggregated by year
-
-Use argument `complete_intervals` to only return years with no NA values across any index - default is TRUE
+We can retrieve the same but in long format, which is handy to ggplot style plotting.
 
 ```{r}
-export_climate_indices() |>
+year = aggregate_climate_indices(by = 'year', form = 'long') |>
   glimpse()
 ```
-
+```{r}
+ggplot(data = year |> filter(measure == 'median'),
+       aes(x = date, y = value, group = index)) +
+  geom_line() +
+  geom_line(data = year |> filter(measure == 'min'), col = 'blue') + 
+  geom_line(data = year |> filter(measure == 'max'), col = 'orange') +
+  facet_wrap( ~ index)
+```

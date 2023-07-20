@@ -135,70 +135,189 @@ read_gsi <- function(filename = c("Chen_EN4_T200_GSI_1954_2021_monthly.xlsx", "C
 }
 
 
+#' Filter climate indices for complete years (they are already assumed to be 
+#' complete months)
+#' 
+#' 
+#' @param x a wide-form tibble of climate index data
+#' @param by character the interval over which to filter - one of 'month' or 'year'
+#' @retun a tibble of climate index data
+complete_intervals_index = function(x = read_climate_indices(), 
+                                    by = c("month", "year")[2]){
+  if (by == "month") return(x)
+
+  if (nrow(x) == 0) return(x)
+  fmt = switch(tolower(by[1]),
+               "year" = "%Y-01-01",
+               "month" = "%Y-%m-01")
+  
+  indices = colnames(x)
+  indices = indices[!(indices %in% "date")]
+  
+  x = dplyr::mutate(x, interval_ = format(date, format="%Y"))
+  
+  y = lapply(indices,
+     function(index){
+       dplyr::select(x, dplyr::all_of(c("date", "interval_", index))) |>
+         dplyr::group_by(interval_) |>
+         dplyr::group_map(
+           function(tbl, key){
+             ix = !is.na(tbl[[index]])
+             if (sum(ix) < 12) tbl[[index]] <- NA
+             tbl
+           }) |>
+         dplyr::bind_rows()
+     }) |>
+  purrr::reduce(dplyr::left_join, by = 'date')
+}
+
+
 #' Aggregate climate index data by month or year
 #' 
 #' @param x a tibble of climate index data
-#' @param by character the interval over which to aggregate - one of 'month' or 'year'
+#' @param by character the interval over which to aggregate - one of 'month' or 'year'.
+#'  Month is ignored and the inout is returned
 #' @retun a tibble of climate index data
 #' 
 #' @export
-aggregate_climate_index <- function(x, 
-                            by = c("month", "year")[2]) {
+aggregate_climate_indices <- function(x = read_climate_indices(), 
+                            by = c("month", "year")[2],
+                            form = c("wide", "long")[1]) {
   
-  if (by == "month") {
-    return(x)
-  } else if (by == "year") {
-    x |>
-      dplyr::group_by(format(date, format="%Y")) |>
+  if (by == "month") return(x)
+ 
+  
+  fmt = switch(tolower(by[1]),
+               "year" = "%Y-01-01",
+               "month" = "%Y-%m-01")
+  
+  indices = colnames(x)
+  indices = indices[!(indices %in% "date")]
+  
+  x = complete_intervals_index(x, by = 'year') |>
+    dplyr::mutate(x, date = as.Date(format(date, format=fmt)))
+  
+  x = x |>
+      dplyr::group_by(date) |>
       dplyr::group_map(
-        function(tbl, key) {
-          v <- sixnum(tbl |> dplyr::pull()) |>
-            as.list() |>
-            dplyr::as_tibble()
-          v |>
-            #dplyr::mutate(date = as.Date(format(tbl[1,]$date, format="%Y-01-01")), .before = dplyr::all_of("min")) |>
-            dplyr::mutate(date = as.Date(format(tbl[1,]$date, format="%Y-01-01")), .before = dplyr::all_of("min"))
-        }
-      ) |>
+        function(tbl, key, params = c("nao", "amo", "gsi")) {
+          v = lapply(params,
+                     function(p){
+                       v = sixnum(tbl |> dplyr::pull(dplyr::all_of(p))) |>
+                         as.list() |>
+                         dplyr::as_tibble()
+                       names(v) <- paste(p, names(v), sep = ".")
+                       v
+                     }) |>
+            dplyr::bind_cols()
+          # now bind to tbl
+          dplyr::select(tbl, dplyr::all_of(c("date"))) |>
+            dplyr::slice(1) |>
+            dplyr::bind_cols(v)
+        }, params = indices, .keep = TRUE ) |>
       dplyr::bind_rows()
-  } else {
-    stop("argument by can only be 'month' or 'year'")
-  }
   
+  if (tolower(form[1]) == 'long'){
+    
+    x = tidyr::pivot_longer(x,
+                         cols = dplyr::where(is.numeric),
+                         names_to = c('foo'),
+                         values_to = 'value') |>
+      tidyr::separate_wider_delim(dplyr::any_of("foo"),
+                                  delim = ".",
+                                  names = c("index", "measure"))
+    
+    
+  }
+  return(x)
 }
+
+
+#' Pivot a long climate indices table to a wide one
+#'
+#' @param x climate indices long table
+#' @return long table
+wide_climate = function(x = long_climate()){
+  tidyr::pivot_wider(x,
+                      names_from = 'index',
+                      values_from = 'value')
+}
+
+#' Pivot a wide climate indices table to a long one
+#'
+#' @param x climate indices wide table
+#' @return long table
+long_climate = function(x = read_climate_indices(form = "wide")){
+  tidyr::pivot_longer(x,
+                      where(is.numeric),
+                      names_to = 'index',
+                      values_to = 'value')
+}
+#' Read climate indices into one table
+#' 
+#' @param what character one or more index names or all to read all
+#' @param path character path to the climate data directory
+#' @param form character defining form to return data table long or wide
+#' @return tibble of climate indices
+read_climate_indices = function(what = c("all", "nao", "amo", "gsi")[1],
+  form = c("long", "wide")[2]){
+  
+  if ("all" %in% what) what = c("nao", "amo", "gsi")
+  
+  x = sapply(tolower(what),
+               function(w){
+                 switch(w, 
+                        "nao" = read_nao(),
+                        "amo" = read_amo(),
+                        "gsi" = read_gsi())
+               }, simplify = FALSE) |>
+    purrr::reduce(dplyr::left_join, by = 'date')  |>
+    dplyr::arrange(date)
+  
+  if (tolower(form[1]) == 'long'){
+    x = tidyr::pivot_longer(x,
+                            where(is.numeric),
+                            names_to = 'index',
+                            values_to = 'value')
+  }
+  x
+}
+
 
 
 #' Join aggregated climate index data into one wide table
 #' 
 #' @param by character. one or 'year' or 'month'
-#' @param complete_intervals logical if TRUE only returns years that do not have NA values
 #' @return a wide table of aggregated climate index data
 #' 
 #' @export
-export_climate_indices <- function(by = c("year", "month")[1],
-                                   complete_intervals = TRUE) {
+export_climate_indices <- function(by = c("year", "month")[1]) {
   
-  amo <- read_amo() |>
-    aggregate_climate_index(by = by) |>
-    dplyr::mutate(index = "amo") |>
-    dplyr::rename(value = amo)
+  #amo <- read_amo() |>
+  #  aggregate_climate_index(by = by) |>
+  #  dplyr::mutate(index = "amo") |>
+  #  dplyr::rename(value = amo)
+  #
+  #nao <- read_nao() |>
+  #  aggregate_climate_index(by = by) |>
+  #  dplyr::mutate(index = "nao")|>
+  #  dplyr::rename(value = nao)
+  #
+  #gsi <- read_gsi() |>
+  #  aggregate_climate_index(by = by) |>
+  #  dplyr::mutate(index = "gsi") |>
+  #  dplyr::rename(value = gsi)
   
-  nao <- read_nao() |>
-    aggregate_climate_index(by = by) |>
-    dplyr::mutate(index = "nao")|>
-    dplyr::rename(value = nao)
+  x = aggregate_climate_indices(by = by)
+  x
   
-  gsi <- read_gsi() |>
-    aggregate_climate_index(by = by) |>
-    dplyr::mutate(index = "gsi") |>
-    dplyr::rename(value = gsi)
   
-  r <- bind_rows(amo, nao, gsi) |>
-    tidyr::pivot_wider(id_cols = dplyr::all_of("date"),
-                       names_from = "index",
-                       names_glue = "{index}.index",
-                       values_from = where(is.numeric))  |>
-    dplyr::arrange(date)
+  #r <- bind_rows(amo, nao, gsi) |>
+  #  tidyr::pivot_wider(id_cols = dplyr::all_of("date"),
+  #                     names_from = "index",
+  #                     names_glue = "{index}.index",
+  #                     values_from = where(is.numeric))  |>
+  #  dplyr::arrange(date)
   
   # we don't want to drop NAs actually, but we do need to make sure that when we compute
   # an annual index from the monthlies that we have 12 minths each year.  In this case
@@ -209,7 +328,7 @@ export_climate_indices <- function(by = c("year", "month")[1],
   #    tidyr::drop_na()
   #}
   
-  return(r)
+  return(x)
   
 }
 
