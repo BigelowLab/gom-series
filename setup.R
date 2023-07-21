@@ -12,7 +12,7 @@ installed = rownames(installed.packages())
 
 cran_packages = c("remotes", "rlang", "here", "httr", "R6", "xml2", "rerddap", "sf", "stars",
                   "rnaturalearth", "rnaturalearthdata", "dataRetrieval", "ncdf4", "ggplot2",
-                  "scales", "tidyr", "readr", "dplyr", "stringr", "purrr", "magrittr")
+                  "scales", "tidyr", "readr", "dplyr", "stringr", "purrr", "magrittr", "corrr")
 ix = (cran_packages %in% installed)
 for (package in cran_packages[!ix]) {
   install.packages(package)
