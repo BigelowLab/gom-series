@@ -86,7 +86,8 @@ read_export = function(by = c("year", "month")[1],
                        ...){
   filename = file.path(path, sprintf("export_%s.csv.gz", by))
   if (!file.exists(filename)) stop("export file not found:", filename)
-  x = readr::read_csv(filename, show_col_types = FALSE)
+  x = readr::read_csv(filename, col_types = readr::cols(date = col_date(),
+                                                        .default = col_double()))
   if (standardize){
     x = standardize_export(x, ...)
   }

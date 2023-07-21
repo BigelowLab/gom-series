@@ -1,7 +1,13 @@
-
+#' Compute surprise index
+#' 
+#' 
+#' @param datain numeric vector (possibly raw, standardize or normalized)
+#' @param win numeric, width of the sliding window
+#' @return numeric vector of surprise indices (standardize departures)
 surprise <- function(datain, win = 30)
 {
-  x <- 1:length(datain)
+  nx = length(x)
+  x <- seq_len(nx)
   dataout <- matrix(data=NA,nrow=length(datain),ncol=1)
   for (i in (win+1):length(datain))
   {
