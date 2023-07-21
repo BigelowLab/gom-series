@@ -16,7 +16,7 @@ plot_export = function(x = read_export(by = 'year') |>
       'Month'
     }
   
-  if (is.null(title)) title = paste("Standard Score by", period)
+  if (is.null(title)) title = paste("Values by", period)
   
   
   if (purge_empty) x = purge_export(x)
