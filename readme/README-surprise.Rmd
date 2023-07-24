@@ -44,3 +44,18 @@ And plot again but this time as categorical "-surprise", "no surprise", "surpris
 ```{r}
 plot_surprise(s, surprise = 2)
 ```
+
+
+```{r}
+x = read_export(by = 'year', standardize = FALSE) |>
+  dplyr::select(-contains("BUOY"))
+```
+
+
+```{r}
+m = x |> select(contains(c("date", "median", "PCI", "hab"))) |>
+  surprise(win = 20)
+
+plot_surprise(m)
+```
+

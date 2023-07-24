@@ -73,6 +73,6 @@ export_pci = function(by = c("year", "month")[1],
   dplyr::rename(x,
                 PCI.spring.anom  = spring.anom,
                 PCI.fall.anom = fall.anom, 
-                PIC.spring.anom.log = spring.anom.log,
+                PCI.spring.anom.log = spring.anom.log,
                 PCI.fall.anom.log = fall.anom.log)
 }

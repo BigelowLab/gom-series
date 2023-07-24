@@ -29,7 +29,21 @@ Plot without binning into surprise categories.
 win = 20
 s = surprise(x, win = win) |>
   dplyr::filter(date >= as.Date("1980-01-01"))
+```
 
+    ## Warning: There was 1 warning in `dplyr::mutate()`.
+    ## ℹ In argument: `dplyr::across(dplyr::where(is.numeric), surprise, win = win)`.
+    ## Caused by warning:
+    ## ! The `...` argument of `across()` is deprecated as of dplyr 1.1.0.
+    ## Supply arguments directly to `.fns` through an anonymous function instead.
+    ## 
+    ##   # Previously
+    ##   across(a:b, mean, na.rm = TRUE)
+    ## 
+    ##   # Now
+    ##   across(a:b, \(x) mean(x, na.rm = TRUE))
+
+``` r
 plot_surprise(s, surprise = NULL)
 ```
 
@@ -42,17 +56,18 @@ And plot again but this time as categorical “-surprise”, “no surprise”,
 plot_surprise(s, surprise = 2)
 ```
 
-    ## Warning: There was 1 warning in `dplyr::mutate()`.
-    ## ℹ In argument: `dplyr::across(dplyr::where(is.numeric), recode_surprise, vals =
-    ##   isurprise)`.
-    ## Caused by warning:
-    ## ! The `...` argument of `across()` is deprecated as of dplyr 1.1.0.
-    ## Supply arguments directly to `.fns` through an anonymous function instead.
-    ## 
-    ##   # Previously
-    ##   across(a:b, mean, na.rm = TRUE)
-    ## 
-    ##   # Now
-    ##   across(a:b, \(x) mean(x, na.rm = TRUE))
-
 ![](README-surprise_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
+
+``` r
+x = read_export(by = 'year', standardize = FALSE) |>
+  dplyr::select(-contains("BUOY"))
+```
+
+``` r
+m = x |> select(contains(c("date", "median", "PCI", "hab"))) |>
+  surprise(win = 20)
+
+plot_surprise(m)
+```
+
+![](README-surprise_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->

@@ -81,7 +81,7 @@ surprise <- function(datain = read_export(by = 'year'), win = 30){
   
   if (inherits(datain, "data.frame")){
       dataout = dplyr::ungroup(datain) |>
-        dplyr::mutate(dplyr::across(dplyr::where(is.numeric), surprise))
+        dplyr::mutate(dplyr::across(dplyr::where(is.numeric), surprise, win = win))
       return(dataout)
   }
   
@@ -98,7 +98,7 @@ surprise <- function(datain = read_export(by = 'year'), win = 30){
   # @param win window width
   # @param idx the sequence along the window
   # @return numeric surprise index
-  surprise_one = function(i, dat = NULL, x = NULL, win = 30, idx = seq_len(win)){
+  surprise_one = function(i, dat = NULL, x = NULL, win = NULL, idx = NULL){
     idx = idx + (i - win)  
     this_y = dat[idx]
     isnotna = !is.na(this_y)
