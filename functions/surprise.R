@@ -4,11 +4,8 @@
 #' @param purge_empty, logical if TRUE drop empty columns (populated by NAs only)
 #' @return ggplot object
 plot_surprise = function(x = read_export(by = 'year') |>
-                           dplyr::select(date, dplyr::contains(c("nao.q25", "amo.q25", "gsi.q25", "nao.median", "amo.median", 
-                                                                 "gsi.median", "nao.q75", "amo.q75", "gsi.q75"))) |>
-                           dplyr::filter(date >= as.Date("1950-01-01")) |>
-                           surprise(win = 20) |>
-                           slice_head(n = -20), 
+                           dplyr::filter(date >= as.Date("1970-01-01")) |>
+                           surprise(win = 20), 
                          surprise = 2,
                          purge_empty = TRUE,
                          title = NULL){
@@ -29,25 +26,23 @@ plot_surprise = function(x = read_export(by = 'year') |>
     recode_surprise = function(x, vals = c(-1, 1)){
       iy = !is.na(x)
       ix = findInterval(x[iy], vals) + 1
-      newvals = c("-surprise", "no surprise", "surprise")[ix]
+      newvals = c("-surprise", "no surprise", "+surprise")[ix]
       #vals[vals == -1] <- 0
       r = rep(NA_integer_, length(x))
       r[which(iy)] = newvals
-      factor(r, levels = c("-surprise", "no surprise", "surprise"))
+      factor(r, levels = c("-surprise", "no surprise", "+surprise"))
     }
     x = dplyr::ungroup(x) |>
       dplyr::mutate(dplyr::across(dplyr::where(is.numeric), recode_surprise, vals = isurprise))
     
   }
   
-  
-  
   cnames = dplyr::select(x, -date) |> colnames()
   long = long_export(x) |>
     dplyr::mutate(name = factor(name, levels = cnames))
   
   gg = ggplot2::ggplot(long, ggplot2::aes(date, name)) +
-    ggplot2::geom_tile(ggplot2::aes(fill = value), colour = "#f7f7f7") +
+    ggplot2::geom_tile(ggplot2::aes(fill = value), colour = "grey60") +
     ggplot2::labs(x = "Date", 
                   y = "", 
                   title = title) +
@@ -60,11 +55,12 @@ plot_surprise = function(x = read_export(by = 'year') |>
   
   if (!is.null(surprise)){
     gg = gg + ggplot2::scale_fill_discrete(drop = FALSE,
-                                           type = c("-surprise" = "blue", 
-                                                    "no surprise" = "white", 
-                                                    "+surprise" = "red")) 
+                                           type = c("-surprise" = "#3182bd", 
+                                                    "no surprise" = "#ffffff", 
+                                                    "+surprise" = "#de2d26",
+                                                    NA_charcater_ = "#f7f7f7")) 
   } else {
-    gg = gg + ggplot2::scale_fill_gradient2(low="blue", high="red", na.value="grey80", name="")
+    gg = gg + ggplot2::scale_fill_gradient2(low="blue", high="red", na.value="grey60", name="")
   }
   
   gg
