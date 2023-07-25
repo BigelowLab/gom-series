@@ -21,7 +21,6 @@ plot_surprise = function(x = read_export(by = 'year') |>
   
   if (is.null(title)) title = paste("Surprise by", period)
   
-  
   if (purge_empty) x = purge_export(x)
   
   if (!is.null(surprise)){
@@ -52,7 +51,7 @@ plot_surprise = function(x = read_export(by = 'year') |>
     ggplot2::labs(x = "Date", 
                   y = "", 
                   title = title) +
-    ggplot2::scale_y_discrete(name = "Parameter", 
+    ggplot2::scale_y_discrete(name = "Parameters", 
                               #breaks = ggplot2::waiver(), 
                               #labels = levels(cnames),
                               guide = guide_axis(angle = 0)) + 
@@ -60,7 +59,10 @@ plot_surprise = function(x = read_export(by = 'year') |>
     ggplot2::theme(axis.text.x = element_text(size=10))
   
   if (!is.null(surprise)){
-    gg = gg + ggplot2::scale_fill_discrete(drop = FALSE) 
+    gg = gg + ggplot2::scale_fill_discrete(drop = FALSE,
+                                           type = c("-surprise" = "blue", 
+                                                    "no surprise" = "white", 
+                                                    "+surprise" = "red")) 
   } else {
     gg = gg + ggplot2::scale_fill_gradient2(low="blue", high="red", na.value="grey80", name="")
   }
