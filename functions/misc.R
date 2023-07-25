@@ -11,6 +11,28 @@ sixnum = function(x, na.rm = TRUE){
     rlang::set_names(c("min", "q25", "median", "mean", "q75", "max"))
 }
 
+#' Perform grepl on multiple patterns; it's like  AND-ing or OR-ing successive grepl statements.
+#' 
+#' Adapted from https://stat.ethz.ch/pipermail/r-help/2012-June/316441.html
+#'
+#' @seealso \code{\link[base]{grepl}}
+#' @export
+#' @param pattern character vector of patterns
+#' @param x the character vector to search
+#' @param op logical vector operator back quoted, defaults to `|`
+#' @param ... further arguments for \code{grepl} like \code{fixed} etc.
+#' @return logical vector
+#' @examples
+#' \dontrun{
+#'  x <- c("dog", "canine", "squirrel", "fish", "banana")
+#'  pattern <- c("nine", "ana")
+#'  mgrepl(pattern, x, fixed = TRUE)
+#'  # [1] FALSE  TRUE FALSE FALSE  TRUE
+#'}
+mgrepl <- function(pattern, x, op = `|`, ... ){
+  Reduce(op, lapply(pattern, grepl, x, ...))
+}
+
 
 #' Compute a season from POSIXct or Date values
 #'

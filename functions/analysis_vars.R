@@ -1,3 +1,32 @@
+#' Reads the target vars file and appends the treatment as required.
+#' 
+#' @param treatment string indicating which treatment to select ie median, q25, q75 or "none" to skip
+#' @param no_treatment string, zero or more variables to exclude form adding the treatment
+#' @param filename string, the file path to the 'target_vars.txt' file
+#' @return character vector
+read_target_vars = function(treatment = c("median", "q25", "q75", "none")[1],
+                            no_treatment = c("PCI", "hab"),
+                            filename = here::here("data", "target_vars.txt")){
+          
+  x <- readLines(filename[1])
+  if (!("none" %in% treatment)){
+    inot = if (length(no_treatment) > 0) {
+        !mgrepl(no_treatment, x, fixed = TRUE)
+      } else {
+        !rep(FALSE, length(x))
+      }
+  
+    x = sapply(treatment,
+      function(trt, x = NULL, inot = NULL){
+        x[inot] = paste(x[inot], trt, sep = ".")
+        x
+      }, x = x, inot = inot) |>
+     as.vector()
+  }
+  x
+}
+
+
 #' Returns a vector of variable names to use in gom-series analysis
 #' 
 #' @param x tibble returned from calling `read_export()`
