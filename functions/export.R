@@ -76,18 +76,23 @@ standardize_export = function(x, ...){
 #' 
 #' @param by char, one of 'month' or 'year'
 #' @param path, char, the path to the export files
+#' @param selection 
 #' @param standardize logical, if TRUE the pass the variables through the \code{scale}
 #'   function so each variable has a mean of 0 and standard deviation of 1.
 #' @param ... other arguments passed to \code{scale}
 #' @return very wide tibble
 read_export = function(by = c("year", "month")[1],
                        path = here::here("data", "export"),
+                       selection = list("all", read_target_vars())[[2]],
                        standardize = FALSE, 
                        ...){
   filename = file.path(path, sprintf("export_%s.csv.gz", by))
   if (!file.exists(filename)) stop("export file not found:", filename)
   x = readr::read_csv(filename, col_types = readr::cols(date = col_date(),
                                                         .default = col_double()))
+  
+  if (!("all" %in% selection)) x = dplyr::select(x,dplyr::all_of(c("date", selection)))
+  
   if (standardize){
     x = standardize_export(x, ...)
   }
