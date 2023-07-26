@@ -9,12 +9,12 @@ source("../setup.R")
 ```
 
 ```{r}
-x <- read_export(by = "year")
+x <- read_export(by = "year", selection = "all")
 ```
 
-## Test the Selected Analysis Variables 
+# Test the Selected Analysis Variables 
 
-Use the function `analysis_vars()` to read in the subset of variables and supply them ti the include argument of `network()`
+Use the function `analysis_vars()` to read in the subset of variables and supply them to the `include` argument of `network()`
 
 ### Median
 
@@ -29,12 +29,26 @@ x |>
   network(include = vars)
 ```
 
+`network_plot()` uses a default 0.3 minimum r value to include a correlation in the plot
+
+Let's try 0.8
+
+```{r median_network_2, warning = FALSE, message = FALSE}
+x |>
+  network(include = vars, min_cor = 0.8)
+```
+
 ### q25
 
 ```{r q25_network, warning = FALSE, message = FALSE}
 network(x, include = analysis_vars(treatment = "q25"))
 ```
 
+Add `min_cor = 0.8`
+
+```{r q25_network_2, warning = FALSE, message = FALSE}
+network(x, include = analysis_vars(treatment = "q25"), min_cor = 0.8)
+```
 
 
 ### q75
@@ -43,10 +57,14 @@ network(x, include = analysis_vars(treatment = "q25"))
 network(x, include = analysis_vars(treatment = "q75"))
 ```
 
+Add `min_cor = 0.8`
+```{r q75_network_2, warning = FALSE, message = FALSE}
+network(x, include = analysis_vars(treatment = "q75"), min_cor = 0.8)
+```
 
-Initial correlation plots:
+# Initial correlation plots:
 
-## Climate Indices
+### Climate Indices
 
 Each index is grouped with itself;
 NAO seems to be the most spread out;
@@ -59,7 +77,7 @@ x |>
     corrr::network_plot(colours = c("skyblue1", "white", "indianred2"))
 ```
 
-## PCI and the HAB Index
+### PCI and the HAB Index
 
 
 
@@ -71,7 +89,7 @@ x |>
 
 ```
 
-## USGS
+### USGS
 
 ```{r usgs_network, echo=FALSE, message=FALSE, warning=FALSE}
 x |>
@@ -81,7 +99,7 @@ x |>
 
 ```
 
-## SST
+### SST
 
 The coastal shelf minimums seperate from the pack;
 Some Georges Bank vars are on their own too
@@ -94,7 +112,7 @@ x |>
 
 ```
 
-## SST + HAB
+### SST + HAB
 
 All negative relationships between both HAB indices and the SST vars
 
@@ -106,7 +124,7 @@ x |>
 
 ```
 
-## Chlorophyll
+### Chlorophyll
 
 Notice I had to use "chlor." to exclude the buoy vars with "chlorophyll"
 
@@ -118,7 +136,7 @@ x |>
 
 ```
 
-## Try them all?
+### Try them all?
 
 Things get busy...
 
