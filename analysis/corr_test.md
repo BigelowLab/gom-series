@@ -9,10 +9,59 @@ source("../setup.R")
 x <- read_export(by = "year")
 ```
 
-Use the function `network(x, include = c(vars))` where x is the table
-from `read_export()` and include is a character vector of what variables
-from x to include in the plot (these can be individual variable names or
-keywords).
+## Test the Selected Analysis Variables
+
+Use the function `analysis_vars()` to read in the subset of variables
+and supply them ti the include argument of `network()`
+
+### Median
+
+``` r
+vars <- analysis_vars(treatment = "median")
+
+vars
+```
+
+    ##  [1] "USGS01059000.discharge.median" "USGS01022500.discharge.median"
+    ##  [3] "GHCN.USC00272174.PRCP.median"  "GHCN.USC00272174.TMAX.median" 
+    ##  [5] "GHCN.USC00272174.TMIN.median"  "GHCN.USC00190736.PRCP.median" 
+    ##  [7] "GHCN.USC00190736.TMAX.median"  "GHCN.USC00190736.TMIN.median" 
+    ##  [9] "GHCN.USC00171628.PRCP.median"  "GHCN.USC00171628.TMAX.median" 
+    ## [11] "GHCN.USC00171628.TMIN.median"  "nao.median"                   
+    ## [13] "amo.median"                    "gsi.median"                   
+    ## [15] "EaMeCoSh.sst.median"           "GeorBnk.sst.median"           
+    ## [17] "GeorBsn.sst.median"            "JordBsn.sst.median"           
+    ## [19] "WeCoSh.sst.median"             "WilkBsn.sst.median"           
+    ## [21] "EaMeCoSh.chlor.median"         "GeorBnk.chlor.median"         
+    ## [23] "GeorBsn.chlor.median"          "JordBsn.chlor.median"         
+    ## [25] "WeCoSh.chlor.median"           "WilkBsn.chlor.median"         
+    ## [27] "PCI.spring.anom.log"           "PCI.fall.anom.log"            
+    ## [29] "hab_index.west"                "hab_index.east"
+
+``` r
+x |>
+  network(include = vars)
+```
+
+![](corr_test_files/figure-gfm/median_network-1.png)<!-- -->
+
+### q25
+
+``` r
+network(x, include = analysis_vars(treatment = "q25"))
+```
+
+![](corr_test_files/figure-gfm/q25_network-1.png)<!-- -->
+
+### q75
+
+``` r
+network(x, include = analysis_vars(treatment = "q75"))
+```
+
+![](corr_test_files/figure-gfm/q75_network-1.png)<!-- -->
+
+Initial correlation plots:
 
 ## Climate Indices
 
@@ -20,7 +69,10 @@ Each index is grouped with itself; NAO seems to be the most spread out;
 NAO and AMO are negatively correlated
 
 ``` r
-network(x, include=c("nao", "gsi", "amo"))
+x |>
+    dplyr::select(dplyr::contains(c("nao", "gsi", "amo"))) |>
+    corrr::correlate() |>
+    corrr::network_plot(colours = c("skyblue1", "white", "indianred2"))
 ```
 
     ## Correlation computed with
@@ -31,17 +83,9 @@ network(x, include=c("nao", "gsi", "amo"))
 
 ## PCI and the HAB Index
 
-``` r
-network(x, include=c("pci", "hab"))
-```
-
 ![](corr_test_files/figure-gfm/pci_hab_network-1.png)<!-- -->
 
 ## USGS
-
-``` r
-network(x, include=c("usgs"))
-```
 
 ![](corr_test_files/figure-gfm/usgs_network-1.png)<!-- -->
 
@@ -50,19 +94,11 @@ network(x, include=c("usgs"))
 The coastal shelf minimums seperate from the pack; Some Georges Bank
 vars are on their own too
 
-``` r
-network(x, include=c("sst"))
-```
-
 ![](corr_test_files/figure-gfm/sst_network-1.png)<!-- -->
 
 ## SST + HAB
 
 All negative relationships between both HAB indices and the SST vars
-
-``` r
-network(x, include=c("sst", "hab"))
-```
 
 ![](corr_test_files/figure-gfm/sst_hab_network-1.png)<!-- -->
 
@@ -70,18 +106,10 @@ network(x, include=c("sst", "hab"))
 
 Notice I had to use “chlor.” to exclude the buoy vars with “chlorophyll”
 
-``` r
-network(x, include=c("chlor."))
-```
-
 ![](corr_test_files/figure-gfm/chlor_network-1.png)<!-- -->
 
 ## Try them all?
 
 Things get busy…
-
-``` r
-network(x, include=c("nao", "gsi", "amo", "sst", "hab", "pci", "usgs", "chlor."))
-```
 
 ![](corr_test_files/figure-gfm/all_network-1.png)<!-- -->

@@ -12,7 +12,39 @@ source("../setup.R")
 x <- read_export(by = "year")
 ```
 
-Use the function `network(x, include = c(vars))` where x is the table from `read_export()` and include is a character vector of what variables from x to include in the plot (these can be individual variable names or keywords). 
+## Test the Selected Analysis Variables 
+
+Use the function `analysis_vars()` to read in the subset of variables and supply them ti the include argument of `network()`
+
+### Median
+
+```{r}
+vars <- analysis_vars(treatment = "median")
+
+vars
+```
+
+```{r median_network, warning = FALSE, message = FALSE}
+x |>
+  network(include = vars)
+```
+
+### q25
+
+```{r q25_network, warning = FALSE, message = FALSE}
+network(x, include = analysis_vars(treatment = "q25"))
+```
+
+
+
+### q75
+
+```{r q75_network, warning = FALSE, message = FALSE}
+network(x, include = analysis_vars(treatment = "q75"))
+```
+
+
+Initial correlation plots:
 
 ## Climate Indices
 
@@ -21,21 +53,32 @@ NAO seems to be the most spread out;
 NAO and AMO are negatively correlated
 
 ```{r climate_network}
-network(x, include=c("nao", "gsi", "amo"))
+x |>
+    dplyr::select(dplyr::contains(c("nao", "gsi", "amo"))) |>
+    corrr::correlate() |>
+    corrr::network_plot(colours = c("skyblue1", "white", "indianred2"))
 ```
 
 ## PCI and the HAB Index
 
 
 
-```{r pci_hab_network, message=FALSE, warning=FALSE}
-network(x, include=c("pci", "hab"))
+```{r pci_hab_network, echo=FALSE, message=FALSE, warning=FALSE}
+x |>
+    dplyr::select(dplyr::contains(c("pci", "hab"))) |>
+    corrr::correlate() |>
+    corrr::network_plot(colours = c("skyblue1", "white", "indianred2"))
+
 ```
 
 ## USGS
 
-```{r usgs_network, message=FALSE, warning=FALSE}
-network(x, include=c("usgs"))
+```{r usgs_network, echo=FALSE, message=FALSE, warning=FALSE}
+x |>
+    dplyr::select(dplyr::contains(c("usgs"))) |>
+    corrr::correlate() |>
+    corrr::network_plot(colours = c("skyblue1", "white", "indianred2"))
+
 ```
 
 ## SST
@@ -43,31 +86,47 @@ network(x, include=c("usgs"))
 The coastal shelf minimums seperate from the pack;
 Some Georges Bank vars are on their own too
 
-```{r sst_network, message=FALSE, warning=FALSE}
-network(x, include=c("sst"))
+```{r sst_network, echo=FALSE, message=FALSE, warning=FALSE}
+x |>
+    dplyr::select(dplyr::contains(c("sst"))) |>
+    corrr::correlate() |>
+    corrr::network_plot(colours = c("skyblue1", "white", "indianred2"))
+
 ```
 
 ## SST + HAB
 
 All negative relationships between both HAB indices and the SST vars
 
-```{r sst_hab_network, message=FALSE, warning=FALSE}
-network(x, include=c("sst", "hab"))
+```{r sst_hab_network, echo=FALSE, message=FALSE, warning=FALSE}
+x |>
+    dplyr::select(dplyr::contains(c("sst", "hab"))) |>
+    corrr::correlate() |>
+    corrr::network_plot(colours = c("skyblue1", "white", "indianred2"))
+
 ```
 
 ## Chlorophyll
 
 Notice I had to use "chlor." to exclude the buoy vars with "chlorophyll"
 
-```{r chlor_network, message=FALSE, warning=FALSE}
-network(x, include=c("chlor."))
+```{r chlor_network, echo=FALSE, message=FALSE, warning=FALSE}
+x |>
+    dplyr::select(dplyr::contains(c("chlor."))) |>
+    corrr::correlate() |>
+    corrr::network_plot(colours = c("skyblue1", "white", "indianred2"))
+
 ```
 
 ## Try them all?
 
 Things get busy...
 
-```{r all_network, message=FALSE, warning=FALSE}
-network(x, include=c("nao", "gsi", "amo", "sst", "hab", "pci", "usgs", "chlor."))
+```{r all_network, echo=FALSE, message=FALSE, warning=FALSE}
+x |>
+    dplyr::select(dplyr::contains(c("nao", "gsi", "amo", "sst", "hab", "pci", "usgs", "chlor."))) |>
+    corrr::correlate() |>
+    corrr::network_plot(colours = c("skyblue1", "white", "indianred2"))
+
 ```
 
