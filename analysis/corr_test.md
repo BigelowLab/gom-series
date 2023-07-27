@@ -6,10 +6,10 @@ source("../setup.R")
 ```
 
 ``` r
-x <- read_export(by = "year")
+x <- read_export(by = "year", selection = "all")
 ```
 
-## Test the Selected Analysis Variables
+# Test the Selected Analysis Variables
 
 Use the function `analysis_vars()` to read in the subset of variables
 and supply them ti the include argument of `network()`
@@ -45,6 +45,18 @@ x |>
 
 ![](corr_test_files/figure-gfm/median_network-1.png)<!-- -->
 
+`network_plot()` uses a default 0.3 minimum r value to include a
+correlation in the plot
+
+Let’s try 0.8
+
+``` r
+x |>
+  network(include = vars, min_cor = 0.8)
+```
+
+![](corr_test_files/figure-gfm/median_network_2-1.png)<!-- -->
+
 ### q25
 
 ``` r
@@ -52,6 +64,14 @@ network(x, include = analysis_vars(treatment = "q25"))
 ```
 
 ![](corr_test_files/figure-gfm/q25_network-1.png)<!-- -->
+
+Add `min_cor = 0.8`
+
+``` r
+network(x, include = analysis_vars(treatment = "q25"), min_cor = 0.8)
+```
+
+![](corr_test_files/figure-gfm/q25_network_2-1.png)<!-- -->
 
 ### q75
 
@@ -61,9 +81,17 @@ network(x, include = analysis_vars(treatment = "q75"))
 
 ![](corr_test_files/figure-gfm/q75_network-1.png)<!-- -->
 
-Initial correlation plots:
+Add `min_cor = 0.8`
 
-## Climate Indices
+``` r
+network(x, include = analysis_vars(treatment = "q75"), min_cor = 0.8)
+```
+
+![](corr_test_files/figure-gfm/q75_network_2-1.png)<!-- -->
+
+# Initial correlation plots:
+
+### Climate Indices
 
 Each index is grouped with itself; NAO seems to be the most spread out;
 NAO and AMO are negatively correlated
@@ -81,34 +109,34 @@ x |>
 
 ![](corr_test_files/figure-gfm/climate_network-1.png)<!-- -->
 
-## PCI and the HAB Index
+### PCI and the HAB Index
 
 ![](corr_test_files/figure-gfm/pci_hab_network-1.png)<!-- -->
 
-## USGS
+### USGS
 
 ![](corr_test_files/figure-gfm/usgs_network-1.png)<!-- -->
 
-## SST
+### SST
 
 The coastal shelf minimums seperate from the pack; Some Georges Bank
 vars are on their own too
 
 ![](corr_test_files/figure-gfm/sst_network-1.png)<!-- -->
 
-## SST + HAB
+### SST + HAB
 
 All negative relationships between both HAB indices and the SST vars
 
 ![](corr_test_files/figure-gfm/sst_hab_network-1.png)<!-- -->
 
-## Chlorophyll
+### Chlorophyll
 
 Notice I had to use “chlor.” to exclude the buoy vars with “chlorophyll”
 
 ![](corr_test_files/figure-gfm/chlor_network-1.png)<!-- -->
 
-## Try them all?
+### Try them all?
 
 Things get busy…
 
