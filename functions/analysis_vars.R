@@ -38,7 +38,7 @@ read_target_vars = function(treatment = c("median", "q25", "q75", "none")[1],
 #' @return a tibble of selected variables 
 #'  
 #'  
-analysis_vars <- function(x = read_export(),
+analysis_vars <- function(x = read_export(selection = "all"),
                           sources = c("sst", "chlor.", "USGS", "GHCN", "amo", "nao", "gsi", "hab", "PCI"),
                           usgs_stations = c("1059000", "1022500"),
                           ghcn_stations = c("00272174", "00190736", "00171628"),
