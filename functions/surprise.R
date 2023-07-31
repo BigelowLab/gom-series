@@ -30,7 +30,7 @@ plot_surprise = function(x = read_export(by = 'year') |>
       #vals[vals == -1] <- 0
       r = rep(NA_integer_, length(x))
       r[which(iy)] = newvals
-      factor(r, levels = c("-surprise", "no surprise", "+surprise"))
+      factor(r, levels = c("+surprise", "no surprise", "-surprise"))
     }
     x = dplyr::ungroup(x) |>
       dplyr::mutate(dplyr::across(dplyr::where(is.numeric), \(x) recode_surprise(x, vals = isurprise)))
@@ -58,9 +58,9 @@ plot_surprise = function(x = read_export(by = 'year') |>
   
   if (!is.null(surprise)){
     gg = gg + ggplot2::scale_fill_discrete(drop = FALSE,
-                                           type = c("-surprise" = "#3182bd", 
+                                           type = c("+surprise" = "#de2d26",
                                                     "no surprise" = "#ffffff", 
-                                                    "+surprise" = "#de2d26",
+                                                    "-surprise" = "#3182bd", 
                                                     NA_charcater_ = "#f7f7f7")) 
   } else {
     gg = gg + ggplot2::scale_fill_gradient2(low = "blue", 

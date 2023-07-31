@@ -32,7 +32,7 @@ plot_export(x)
 Plot without binning into surprise categories.
 
 ```{r}
-win = 20
+win = 10
 s = surprise(x, win = win) |>
   dplyr::filter(date >= as.Date("1980-01-01"))
 
