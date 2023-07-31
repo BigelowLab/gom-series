@@ -1,0 +1,103 @@
+---
+title: "Blended Sea Winds (BSW)"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, warning = FALSE, message = FALSE}
+source("../setup.R")
+```
+
+### BSW monthly stats
+
+We downloaded monthly sea wind data from [BSW](https://coastwatch.noaa.gov/cwn/products/noaa-ncei-blended-seawinds-nbs-v2.html).  For each region we computed the pixel statistics values at each month.
+
+> Note that we store the BSW data for by date for each subregion.  This file can be updated as needed using `fetch_bswm()` - see below.
+
+```{r, message = FALSE}
+x <- read_bswm() |> 
+  dplyr::mutate(month = factor(format(date, "%b"), levels = month.abb), .after = 1) |>
+  glimpse()
+```
+Let's tally the number of parameters...
+
+```{r}
+dplyr::count(x, var)
+```
+
+```{r, message = FALSE}
+
+x <- dplyr::group_by(x, region)
+
+ggplot(data = dplyr::filter(x, var == "windspeed"), aes(x = date, y = q75)) +
+  geom_line() + 
+  labs(y = "Q75 Wind Speed") + 
+  geom_smooth(method = "lm", se = FALSE, formula = y ~ x) +
+  facet_wrap(~ region)
+```
+
+```{r, message = FALSE}
+georges_bank = dplyr::filter(x, region == 'Georges Bank', var == "windspeed")
+ggplot(data = georges_bank, aes(x = date, y = min)) +
+  labs(y = "Min and Max Winds") + 
+  geom_line() + 
+  geom_smooth(method = "lm", se = FALSE) +
+  geom_line(aes(x = date, y = max)) + 
+  geom_smooth(aes(x = date, y = max), method = "lm", se = FALSE, color = "orange") +
+  facet_wrap(~ month)
+```
+
+
+```{r}
+name = "Georges Bank"
+plot(stsaav::stsaav(georges_bank,
+                     t_step = "Month",
+                     tcol = "date",
+                     vcol = "median"),
+    main = paste0(name, ", Monthly Median Windspeed"))
+```
+### Annual Metrics
+
+Annual metrics can be computed from the various wind variables since each month has the same number of pixels are sampled for each region. Partial years are not computed.
+
+
+```{r, message = FALSE}
+a <- aggregate_bswm(x) |>
+  dplyr::group_by(region) |>
+  dplyr::filter(var %in% c("windspeed"))
+
+ggplot(data = a, aes(x = date, y = median)) + 
+  geom_line(color = "black", alpha = 0.7) +
+  geom_smooth(method = "lm", se = FALSE, color = "black") +
+  geom_line(aes(x = date, y = min), color = "blue", alpha = 0.7) +
+  geom_smooth(aes(x = date, y = min), method = "lm", se = FALSE, color = "blue") +
+  geom_line(aes(x = date, y = max), color = "orange", alpha = 0.7) + 
+  geom_smooth(aes(x = date, y = max), method = "lm", se = FALSE, color = "orange") + 
+  labs(y = "Median, Min and Max SST") + 
+  facet_wrap(~region)
+```
+### Surprises
+
+```{r}
+x = widen_bswm(by = "year")
+s = surprise(x, win = 20)
+```
+
+```{r}
+plot_surprise(s)
+```
+
+
+
+
+
+### Updating the local dataset
+
+It's easy to build or renew the local dataset.
+
+```
+r <- fetch_bswm()
+```

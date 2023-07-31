@@ -1,10 +1,11 @@
-#' Plot an export data frame
+plot_export = function(...) plot_wide(...)
+
+#' Plot a wide data frame
 #'
-#' @param x data frame or tibble of exported data
+#' @param x data frame or tibble of wide data
 #' @param purge_empty, logical if TRUE drop empty columns (populated by NAs only)
 #' @return ggplot object
-plot_export = function(x = read_export(by = 'year') |>
-                         dplyr::select(date, dplyr::contains("mean")) |>
+plot_wide = function(x = read_export(by = 'year') |>
                          dplyr::filter(date >= as.Date("1950-01-01")) |>
                          standardize_export(),
                        purge_empty = TRUE,
@@ -106,11 +107,11 @@ read_export = function(by = c("year", "month")[1],
 #' @param by char the interval to aggregate over (one of 'year' or 'month')
 #' @param ofile char or NULL, if not NULL then write to this file. If NULL write nothing
 #' @return a very very very wide aggregate table
-export = function(what = c("all","sst", "chlor", "usgs", "ghcn", "climate", "hab", "buoys", "pci")[1],
+export = function(what = c("all","sst", "chlor", "bswm", "usgs", "ghcn", "climate", "hab", "buoys", "pci")[1],
                   by = c("year", "month")[1], 
                   ofile = here::here("data", "export", sprintf("export_%s.csv.gz", by))){
  
-  if ("all" %in% what) what = c("sst", "chlor", "usgs", "ghcn", "climate", "hab", "buoys","pci")
+  if ("all" %in% what) what = c("sst", "chlor", "bswm", "usgs", "ghcn", "climate", "hab", "buoys","pci")
   
   xx = sapply(what,
               function(w){
@@ -122,7 +123,8 @@ export = function(what = c("all","sst", "chlor", "usgs", "ghcn", "climate", "hab
                        "buoys" = export_buoy(by = by),
                        "climate" = export_climate_indices(by = by),
                        "hab" = export_hab_index(by = by),
-                       "pci" = export_pci(by = by)
+                       "pci" = export_pci(by = by),
+                       "bswm" = export_bswm(by=by)
                 ) # switch
               }, simplify = FALSE)
   

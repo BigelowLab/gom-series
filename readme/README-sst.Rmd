@@ -13,7 +13,7 @@ source("../setup.R")
 
 ### OISST monthly means
 
-We downloaded monthly mean SST data from [OISST](https://psl.noaa.gov/data/gridded/data.noaa.oisst.v2.highres.html).  For each region we computed the mean pixel value at each month.
+We downloaded monthly mean SST data from [OISST](https://psl.noaa.gov/data/gridded/data.noaa.oisst.v2.highres.html).  For each region we computed the pixel statistics values at each month.
 
 > Note that we store the OISST data for by date for each subregion.  This file can be updated as needed using `fetch_oisst()` - see below.
 

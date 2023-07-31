@@ -1,3 +1,25 @@
+#' Compute the range of values per column
+#' 
+#' @param x a table with one or more numeric columns
+#' @param na.rm logical, if TRUE compute after removing NAs
+#' @param collapse logical, if TRUE compute a single range for all data
+#' @return if \code{collapse} is TRUE then a vector of [min, max]
+#'   otherwise three column summary of [var, min, max]
+table_range = function(x, na.rm = TRUE, collapse = TRUE){
+  
+  mm = dplyr::select(x, dplyr::where(is.numeric)) |>
+    apply(2, range, na.rm = na.rm) |>
+    t() |>
+    dplyr::as_tibble(.name_repair = "minimal",
+                     rownames = "var") |>
+    rlang::set_names(c("var", "min", "max"))
+  
+  if (collapse){
+    mm = c(min(mm$min, na.rm = na.rm), max(mm$max, na.rm = na.rm))
+  }
+  mm 
+}
+
 #' Given a set of values compute the standard summary of 
 #' [min, q25, median, mean, q75, max]
 #' 

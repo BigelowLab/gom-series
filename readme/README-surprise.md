@@ -28,21 +28,7 @@ Plot without binning into surprise categories.
 win = 20
 s = surprise(x, win = win) |>
   dplyr::filter(date >= as.Date("1980-01-01"))
-```
 
-    ## Warning: There was 1 warning in `dplyr::mutate()`.
-    ## ℹ In argument: `dplyr::across(dplyr::where(is.numeric), surprise, win = win)`.
-    ## Caused by warning:
-    ## ! The `...` argument of `across()` is deprecated as of dplyr 1.1.0.
-    ## Supply arguments directly to `.fns` through an anonymous function instead.
-    ## 
-    ##   # Previously
-    ##   across(a:b, mean, na.rm = TRUE)
-    ## 
-    ##   # Now
-    ##   across(a:b, \(x) mean(x, na.rm = TRUE))
-
-``` r
 plot_surprise(s, surprise = NULL)
 ```
 

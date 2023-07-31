@@ -149,7 +149,35 @@ fetch_BSWm<- function(x = read_regions(),
   if (progress) close(pb)
   X$close_nc()
   r
-} # fetch_oisst
+} # fetch_bswm
+
+
+export_bswm = function(...) {widen_bswm(...)}
+
+#' Transform the annual (or monthly) data in a wide format
+#' @param by character, one of 'year' or 'month'
+#' @param x tibble or NULL, aggregated dataset.  If NULL we read it internally
+#' @return wide tibble of aggregated data
+widen_bswm = function(by = c("year", "month")[1],
+                       x = NULL){
+  
+  if (is.null(x)){ 
+    x = read_bswm() |>
+      aggregate_bswm(by = by)
+  }
+  
+  
+  x = dplyr::mutate(x, region = region_shortnames()[region])
+  
+  x|>
+    tidyr::pivot_wider(names_from = c("region", "var"), 
+                       id_cols = "date",
+                       names_glue = "BSWm.{region}.{var}.{.value}",
+                       values_from = where(is.numeric))  |>
+    dplyr::arrange(date)
+}
+
+
 
 ##### R6 class below ###########################################################
 # Used to access BSW monthky aggregations (either 'uvcomp' or 'stress')

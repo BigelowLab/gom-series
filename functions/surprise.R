@@ -33,8 +33,13 @@ plot_surprise = function(x = read_export(by = 'year') |>
       factor(r, levels = c("-surprise", "no surprise", "+surprise"))
     }
     x = dplyr::ungroup(x) |>
-      dplyr::mutate(dplyr::across(dplyr::where(is.numeric), recode_surprise, vals = isurprise))
-    
+      dplyr::mutate(dplyr::across(dplyr::where(is.numeric), \(x) recode_surprise(x, vals = isurprise)))
+    rng = c(-surprise, surprise)
+  } else {
+    rng = table_range(dplyr::ungroup(x), na.rm = TRUE, collapse = TRUE)
+    if (sign(rng[1]) < 0 && sign(rng[2]) > 0){
+      rng = rep(max(rng),2) * c(-1, 1)    
+    } 
   }
   
   cnames = dplyr::select(x, -date) |> colnames()
@@ -47,8 +52,6 @@ plot_surprise = function(x = read_export(by = 'year') |>
                   y = "", 
                   title = title) +
     ggplot2::scale_y_discrete(name = "Parameters", 
-                              #breaks = ggplot2::waiver(), 
-                              #labels = levels(cnames),
                               guide = guide_axis(angle = 0)) + 
     ggplot2::theme_bw() + 
     ggplot2::theme(axis.text.x = element_text(size=10))
@@ -60,7 +63,11 @@ plot_surprise = function(x = read_export(by = 'year') |>
                                                     "+surprise" = "#de2d26",
                                                     NA_charcater_ = "#f7f7f7")) 
   } else {
-    gg = gg + ggplot2::scale_fill_gradient2(low="blue", high="red", na.value="grey60", name="")
+    gg = gg + ggplot2::scale_fill_gradient2(low = "blue", 
+                                            high = "red", 
+                                            na.value = "grey60", 
+                                            name = "",
+                                            limits = rng)
   }
   
   gg
@@ -79,7 +86,7 @@ surprise <- function(datain = read_export(by = 'year'), win = 30){
   
   if (inherits(datain, "data.frame")){
       dataout = dplyr::ungroup(datain) |>
-        dplyr::mutate(dplyr::across(dplyr::where(is.numeric), surprise, win = win))
+        dplyr::mutate(dplyr::across(dplyr::where(is.numeric), \(x) surprise(x, win = win)))
       return(dataout)
   }
   
@@ -122,14 +129,4 @@ surprise <- function(datain = read_export(by = 'year'), win = 30){
   #  dataout[i] <- dev / sd(fit$residuals)
   #}
   #return(dataout[,1, drop = TRUE])
-}
-
-
-if (FALSE){
-  x = read_export(by = 'year')
-  nms = colnames(x)
-  for (i in 2:ncol(x)) {
-    cat(nms[i], "\n")
-    x[[i]] = surprise(x[[i]])
-  }
 }
