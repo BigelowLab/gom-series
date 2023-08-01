@@ -82,14 +82,15 @@ ggplot(data = a, aes(x = date, y = median)) +
 ### Surprises
 
 ```{r}
-x = widen_bswm(by = "year") |> dplyr::select(c(date, contains("windspeed")))
-s = surprise(x, win = 10)
+x = widen_bswm(by = "year") 
+s = surprise(x |> dplyr::select(c(date, contains("windspeed"))), win = 10)
 ```
 
 ```{r}
 plot_surprise(s)
 ```
 
+```{r}
 
 
 

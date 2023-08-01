@@ -1,0 +1,15 @@
+# source adapted from https://www.engineeringtoolbox.com/beaufort-wind-scale-d_184.html
+Beaufort	description	speed_mps
+0	Calm	Smoke rises vertically. The sea is mirror smooth.	0
+1	Light Air	Direction of wind shown by smoke drift but not by vanes. Scale-like ripples on sea, no foam on wave crests.	0.514
+2	Light Breeze	Wind felt on face, leaves rustle, ordinary vanes moved by wind. Short wavelets, glassy wave crests.	2.06
+3	Gentle Breeze	Leaves and small twigs in constant motion, wind extends light flag	3.6
+4	Moderate Breeze	Raises dust and loose paper, small branches moved. Fairy frequent whitecaps occur.	5.65
+5	Fresh Breeze	Small trees in leaf begin to sway. Moderate waves, many white foam crests.	8.74
+6	Strong Breeze	Large branches in motion, whistling heard in telegraph wires. Some spray on the sea surface.	11.3
+7	Moderate (Near) gale	Whole trees in motion, inconvenience felt when walking into wind. Foam on waves blows on streaks.	14.4
+8	Gale	Twigs broken of trees, generally impeded progress. Long streaks on foam appear on sea.	17.5
+9	Strong gale	Straight structural damage, e.g. slates and chimney pots removed from the roofs. High waves, crest start to roll over.	21.1
+10	Storm	Trees uprooted, considerable structural damage. Exceptionally high waves, visibility affected.	24.7
+11	Violent Storm	Widespread damage	28.8
+12	Hurricane	Air is filled with spray and foam.	32.9

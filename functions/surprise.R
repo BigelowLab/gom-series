@@ -1,3 +1,22 @@
+plot_departure = function(x = read_export(by = 'year') |>
+                            dplyr::filter(date >= as.Date("1970-01-01")) |>
+                            departure(win = 20),
+                          title = NULL,
+                          ...){
+  
+  period = if(diff(x$date[1:2]) > 32){
+    'Year'
+  } else {
+    'Month'
+  }
+  
+  if (is.null(title)) title = paste("Departure by", period)
+  
+  plot_surprise(x, title = title, ...)
+  
+}
+
+
 #' Plot an export data frame
 #'
 #' @param x data frame or tibble of exported data
@@ -129,4 +148,58 @@ surprise <- function(datain = read_export(by = 'year'), win = 30){
   #  dataout[i] <- dev / sd(fit$residuals)
   #}
   #return(dataout[,1, drop = TRUE])
+}
+
+
+
+#' Compute departure from a single vector or for all numeric columns in a
+#' data frame (suitable for the 'export')
+#' 
+#' @param datain numeric vector or a data.frame (tibble) with numeric-type variables
+#' @param win numeric, width of the sliding window
+#' @param fun function name (unquoted) to compute the departure from
+#' @param na.rm logical, if TRUE drop NAs before computing departure
+#' @return numeric vector of surprise indices (standardize departures)
+#'  or if the input is a data.frame (tibble) then the input with mutated columns
+departure <- function(datain = read_export(by = 'year'), 
+                      win = 30, 
+                      fun = mean, 
+                      na.rm = TRUE){
+  
+  if (inherits(datain, "data.frame")){
+    dataout = dplyr::ungroup(datain) |>
+      dplyr::mutate(dplyr::across(dplyr::where(is.numeric), 
+                                  \(x) departure(x, win = win, fun = fun, na.rm = na.rm)))
+    return(dataout)
+  }
+  
+  
+  nx = length(datain)
+  if (nx <= win) stop("input must be longer than window")
+  x = seq_len(nx)
+  idx = seq_len(win) - 1L
+  
+  # a temporary function applied for each iteration
+  # @param i iteration number
+  # @param dat essentially datain
+  # @param x the sequential index alon dat
+  # @param win window width
+  # @param idx the sequence along the window
+  # @return numeric departure
+  depart_one = function(i, dat = NULL, x = NULL, win = NULL, idx = NULL, fun = mean, na.rm = TRUE){
+    idx = idx + (i - win)  
+    this_y = dat[idx]
+    isnotna = !is.na(this_y)
+    if (sum(isnotna) < 10) return(NA_real_)
+    
+    center = fun(this_y, na.rm = na.rm)
+    stdev = sd(this_y, na.rm = na.rm)
+    dev = datain[i] - center
+    dev/stdev
+  }
+  dataout = c(rep(NA_real_, win),
+              sapply(seq.int(from = win+1L, to = length(datain)), 
+                     depart_one, dat = datain, x = x, win = win, idx = idx, fun = fun, na.rm = na.rm) |>
+                unname())
+  return(dataout)
 }

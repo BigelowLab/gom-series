@@ -1,3 +1,26 @@
+#' Read the Beaufort scale
+#' 
+#' @param filename the name of the LUT file
+#' @param path the path to the beaufort scale LUT file
+#' @return tibble
+read_beaufort_lut = function(filename =  "beaufort.tsv",
+                             path = here::here("data", "bsw") ){
+  
+  readr::read_csv(file.path(path, filename), col_types = 'ccn')
+}
+
+
+#' Transform a vector of wind speeds to the beaufort scale
+#' 
+#' @param x numeric vector of wind speeds in m/s
+#' @param lut table of LUT
+#' @return character vector of Beufort scale values
+as_beaufort = function(x, lut = read_beaufort_lut()){
+  
+  ix <- findInterval(x, lut$speed_mps)
+  lut$Beaufort[ix]
+}
+
 # https://coastwatch.noaa.gov/cwn/products/noaa-ncei-blended-seawinds-nbs-v2.html
 
 #' Aggregate BSWm daily data by month or year
@@ -150,6 +173,15 @@ fetch_BSWm<- function(x = read_regions(),
   X$close_nc()
   r
 } # fetch_bswm
+
+
+#' Pivot BSW to longer format
+#' 
+#' @param x raw input table
+#' @return long-form of the input
+longer_bswm = function(x = read_bswm()){
+  tidyr::pivot_longer(x, dplyr::where(is.numeric) )
+}
 
 
 export_bswm = function(...) {widen_bswm(...)}
