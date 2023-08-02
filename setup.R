@@ -45,3 +45,5 @@ here::i_am("setup.R")
 for (f in list.files(here("functions"), pattern = "^.*\\.R$", full.names = TRUE)){
   source(f)
 }
+
+

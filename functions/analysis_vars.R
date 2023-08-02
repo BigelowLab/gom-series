@@ -39,7 +39,7 @@ read_target_vars = function(treatment = c("median", "q25", "q75", "none")[1],
 #'  
 #'  
 analysis_vars <- function(x = read_export(selection = "all"),
-                          sources = c("sst", "chlor.", "USGS", "GHCN", "amo", "nao", "gsi", "hab", "PCI"),
+                          sources = c("sst", "chlor.", "USGS", "GHCN", "amo", "nao", "gsi", "hab", "PCI", "cal"),
                           usgs_stations = c("1059000", "1022500"),
                           ghcn_stations = c("00272174", "00190736", "00171628"),
                           ghcn_params = c("TMIN", "TMAX", "PRCP"),
@@ -57,11 +57,11 @@ analysis_vars <- function(x = read_export(selection = "all"),
     dplyr::select(!dplyr::contains(c("USGS", "GHCN", "PCI", "hab")) & dplyr::contains(sources) & dplyr::contains(treatment)) |>
     colnames()
   
-  pci_hab <- x |>
-    dplyr::select(dplyr::contains(c("PCI")) & dplyr::contains("log") | dplyr::contains("hab")) |>
+  pci_hab_cal <- x |>
+    dplyr::select(dplyr::contains(c("PCI")) & dplyr::contains("log") | dplyr::contains("hab") | dplyr::contains("cal")) |>
     colnames()
   
-  vars <- c(usgs_vars, ghcn_vars, other_vars, pci_hab)
+  vars <- c(usgs_vars, ghcn_vars, other_vars, pci_hab_cal)
   
   return(vars)
   
