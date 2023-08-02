@@ -23,7 +23,7 @@ read_regions <- function(filename = "gulf_of_maine_regions.gpkg",
                          path = here::here("data", "regions"),
                          split_coastal = TRUE,
                          form = c("raw", "bbox", "chull")[1],
-                         keep = c("Wikinson Basin", "Jordan Basin", "Georges Basin",  
+                         keep = c("Wilkinson Basin", "Jordan Basin", "Georges Basin",  
                                   "Georges Bank", "Eastern Maine Coastal Shelf", 
                                   "Western Coastal Shelf")){
   #Jordan Basin, Wilkinson Basin, Georges Basin, Georges Bank, EMCC, WMCC
@@ -31,7 +31,8 @@ read_regions <- function(filename = "gulf_of_maine_regions.gpkg",
   if (!file.exists(filename)) stop("file not found:", filename)
   
   x <- sf::read_sf(filename) |>
-    dplyr::select(-objectid, -regionnum, -dplyr::starts_with("area"))
+    dplyr::select(-dplyr::any_of(c("objectid", "regionnum")), 
+                  -dplyr::starts_with("area"))
   
 
   
