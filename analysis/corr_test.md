@@ -11,13 +11,13 @@ x <- read_export(by = "year", selection = "all")
 
 # Test the Selected Analysis Variables
 
-Use the function `analysis_vars()` to read in the subset of variables
-and supply them ti the include argument of `network()`
+Use the function `read_target_vars()` to read in the subset of variables
+and supply them to the `include` argument of `network()`
 
 ### Median
 
 ``` r
-vars <- analysis_vars(treatment = "median")
+vars <- read_target_vars(treatment = "median")
 
 vars
 ```
@@ -36,7 +36,8 @@ vars
     ## [23] "GeorBsn.chlor.median"          "JordBsn.chlor.median"         
     ## [25] "WeCoSh.chlor.median"           "WilkBsn.chlor.median"         
     ## [27] "PCI.spring.anom.log"           "PCI.fall.anom.log"            
-    ## [29] "hab_index.west"                "hab_index.east"
+    ## [29] "hab_index.west"                "hab_index.east"               
+    ## [31] "cal_index.spring"              "cal_index.fall"
 
 ``` r
 x |>
@@ -60,7 +61,7 @@ x |>
 ### q25
 
 ``` r
-network(x, include = analysis_vars(treatment = "q25"))
+network(x, include = read_target_vars(treatment = "q25"))
 ```
 
 ![](corr_test_files/figure-gfm/q25_network-1.png)<!-- -->
@@ -68,7 +69,7 @@ network(x, include = analysis_vars(treatment = "q25"))
 Add `min_cor = 0.8`
 
 ``` r
-network(x, include = analysis_vars(treatment = "q25"), min_cor = 0.8)
+network(x, include = read_target_vars(treatment = "q25"), min_cor = 0.8)
 ```
 
 ![](corr_test_files/figure-gfm/q25_network_2-1.png)<!-- -->
@@ -76,7 +77,7 @@ network(x, include = analysis_vars(treatment = "q25"), min_cor = 0.8)
 ### q75
 
 ``` r
-network(x, include = analysis_vars(treatment = "q75"))
+network(x, include = read_target_vars(treatment = "q75"))
 ```
 
 ![](corr_test_files/figure-gfm/q75_network-1.png)<!-- -->
@@ -84,7 +85,7 @@ network(x, include = analysis_vars(treatment = "q75"))
 Add `min_cor = 0.8`
 
 ``` r
-network(x, include = analysis_vars(treatment = "q75"), min_cor = 0.8)
+network(x, include = read_target_vars(treatment = "q75"), min_cor = 0.8)
 ```
 
 ![](corr_test_files/figure-gfm/q75_network_2-1.png)<!-- -->
