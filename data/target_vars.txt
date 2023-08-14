@@ -28,3 +28,5 @@ PCI.spring.anom.log
 PCI.fall.anom.log
 hab_index.west
 hab_index.east
+cal_index.spring
+cal_index.fall

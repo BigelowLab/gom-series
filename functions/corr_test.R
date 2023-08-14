@@ -7,7 +7,7 @@
 #' @return a network plot
 #' 
 network <- function(x = read_export(), 
-                    include = analysis_vars(),
+                    include,
                     start_year = 1970,
                     min_cor = 0.3) {
   
