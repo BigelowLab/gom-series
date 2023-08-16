@@ -20,14 +20,20 @@ plot_departure = function(x = read_export(by = 'year') |>
 #' Plot an export data frame
 #'
 #' @param x data frame or tibble of exported data
+#' @param surprise numeric, the threshold for what defines a surprise
+#' @param clip_window logical, if TRUE clip the leading window of missing data.
+#'   Note that at this point it guesses what that width is.
 #' @param purge_empty, logical if TRUE drop empty columns (populated by NAs only)
+#' @param title char or NULL, if NULL no title is added, if 'auto' then an title is 
+#'   automatically gueesed at, if any other string then use that
 #' @return ggplot object
 plot_surprise = function(x = read_export(by = 'year') |>
                            dplyr::filter(date >= as.Date("1970-01-01")) |>
                            surprise(win = 20), 
                          surprise = 2,
+                         clip_window = TRUE,
                          purge_empty = TRUE,
-                         title = NULL){
+                         title = 'auto'){
   
   period = if(diff(x$date[1:2]) > 32){
     'Year'
@@ -35,9 +41,13 @@ plot_surprise = function(x = read_export(by = 'year') |>
     'Month'
   }
   
-  if (is.null(title)) title = paste("Surprise by", period)
+  if (is.character(title) && grepl("auto", title, fixed = TRUE)) title = paste("Surprise by", period)
   
   if (purge_empty) x = purge_export(x)
+  if (clip_window) {
+    empty_rows = apply(dplyr::select(x,-date), 1, function(x) all(is.na(x)))
+    x = dplyr::filter(x, !empty_rows)
+  }
   
   if (!is.null(surprise)){
     # leaves a wide empty -1 to 1 spot
@@ -46,7 +56,6 @@ plot_surprise = function(x = read_export(by = 'year') |>
       iy = !is.na(x)
       ix = findInterval(x[iy], vals) + 1
       newvals = c("-surprise", "no surprise", "+surprise")[ix]
-      #vals[vals == -1] <- 0
       r = rep(NA_integer_, length(x))
       r[which(iy)] = newvals
       factor(r, levels = c("+surprise", "no surprise", "-surprise"))
@@ -70,17 +79,22 @@ plot_surprise = function(x = read_export(by = 'year') |>
     ggplot2::labs(x = "Date", 
                   y = "", 
                   title = title) +
-    ggplot2::scale_y_discrete(name = "Parameters", 
-                              guide = guide_axis(angle = 0)) + 
-    ggplot2::theme_bw() + 
-    ggplot2::theme(axis.text.x = element_text(size=10))
+    ggplot2::scale_y_discrete(name = NULL, 
+                              guide = guide_axis(angle = 45)) + 
+    ggplot2::theme_gray() + 
+    ggplot2::theme(axis.text.x = element_text(size=10),
+                   legend.title=element_blank())
   
   if (!is.null(surprise)){
     gg = gg + ggplot2::scale_fill_discrete(drop = FALSE,
+                                           breaks = c("+surprise",
+                                                      "no surprise", 
+                                                      "-surprise", 
+                                                      NA_character_),
                                            type = c("+surprise" = "#de2d26",
                                                     "no surprise" = "#ffffff", 
                                                     "-surprise" = "#3182bd", 
-                                                    NA_charcater_ = "#f7f7f7")) 
+                                                    "NA" = "#f7f7f7")) 
   } else {
     gg = gg + ggplot2::scale_fill_gradient2(low = "blue", 
                                             high = "red", 
