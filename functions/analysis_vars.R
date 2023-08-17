@@ -4,11 +4,15 @@
 #' @param no_treatment string, zero or more variables to exclude form adding the treatment
 #' @param filename string, the file path to the 'target_vars.txt' file
 #' @return character vector
-read_target_vars = function(treatment = c("median", "q25", "q75", "none")[1],
+read_target_vars = function(treatment = c("median", "q25", "q75", "none", "all")[1],
                             no_treatment = c("PCI", "hab", "cal"),
                             filename = here::here("data", "target_vars.txt")){
           
   x <- readLines(filename[1])
+  
+  
+  if ("all" %in% treatment) treatment =c("median", "q25", "q75")
+  
   if (!("none" %in% treatment)){
     inot = if (length(no_treatment) > 0) {
         !mgrepl(no_treatment, x, fixed = TRUE)

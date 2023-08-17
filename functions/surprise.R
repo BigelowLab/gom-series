@@ -32,8 +32,9 @@ plot_surprise = function(x = read_export(by = 'year') |>
                            surprise(win = 20), 
                          surprise = 2,
                          clip_window = TRUE,
-                         purge_empty = TRUE,
-                         title = 'auto'){
+                         purge_empty = FALSE,
+                         title = 'auto',
+                         y_text_angle = 0){
   
   period = if(diff(x$date[1:2]) > 32){
     'Year'
@@ -68,7 +69,7 @@ plot_surprise = function(x = read_export(by = 'year') |>
     if (sign(rng[1]) < 0 && sign(rng[2]) > 0){
       rng = rep(max(rng),2) * c(-1, 1)    
     } 
-  }
+  } # surprise or departure?
   
   cnames = dplyr::select(x, -date) |> colnames()
   long = long_export(x) |>
@@ -80,7 +81,7 @@ plot_surprise = function(x = read_export(by = 'year') |>
                   y = "", 
                   title = title) +
     ggplot2::scale_y_discrete(name = NULL, 
-                              guide = guide_axis(angle = 45)) + 
+                              guide = guide_axis(angle = y_text_angle)) + 
     ggplot2::theme_gray() + 
     ggplot2::theme(axis.text.x = element_text(size=10),
                    legend.title=element_blank())

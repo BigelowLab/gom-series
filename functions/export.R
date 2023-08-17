@@ -9,7 +9,8 @@ plot_wide = function(x = read_export(by = 'year') |>
                          dplyr::filter(date >= as.Date("1950-01-01")) |>
                          standardize_export(),
                        purge_empty = TRUE,
-                       title = NULL){
+                       title = NULL,
+                       y_text_angle = 0){
   
   period = if(diff(x$date[1:2]) > 32){
       'Year'
@@ -32,10 +33,8 @@ plot_wide = function(x = read_export(by = 'year') |>
     ggplot2::labs(x = "Date", 
                   y = "", 
                   title = title) +
-    ggplot2::scale_y_discrete(name = "Parameter", 
-                     #breaks = ggplot2::waiver(), 
-                     #labels = levels(cnames),
-                     guide = guide_axis(angle = 0)) + 
+    ggplot2::scale_y_discrete(name = NULL, 
+                              guide = guide_axis(angle = y_text_angle)) + 
     ggplot2::theme_bw() + 
     ggplot2::theme(axis.text.x = element_text(size=10))
 }
