@@ -36,13 +36,13 @@ win = 10
 s = surprise(x, win = win) |>
   dplyr::filter(date >= as.Date("1980-01-01"))
 
-plot_surprise(s, surprise = NULL)
+plot_surprise(s, surprise = NULL, title = NULL)
 ```
 
 And plot again but this time as categorical "-surprise", "no surprise", "surprise" groups.
 
 ```{r}
-plot_surprise(s, surprise = 2)
+plot_surprise(s, surprise = 2, title = NULL)
 ```
 
 
