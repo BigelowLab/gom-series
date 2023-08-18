@@ -34,9 +34,15 @@ complete_intervals_buoys = function(x,
 #' Returns a table of buoy metadata
 #' 
 #' @param filename the name of the file to read
+#' @param form char, one of 'table' or 'sf'
 #' @return tibble
-buoy_lut = function(filename = here::here("data","buoy", "buoy_listing.csv")){
-  readr::read_csv(filename, show_col_types = FALSE)
+buoy_lut = function(filename = here::here("data","buoy", "buoy_listing.csv"),
+                    form = c("table", "sf")[1]){
+  x = readr::read_csv(filename, show_col_types = FALSE)
+  if (tolower(form[1]) == 'sf'){
+    x = sf::st_as_sf(x, coords = c("lon", "lat"), crs = 4326)
+  }
+  x
 }
 
 #' Modify a timezone attribute on a POSIX object

@@ -42,6 +42,10 @@ suppressPackageStartupMessages({
 
 here::i_am("setup.R")
 
+# setting the base map - me no like - better if it were an argument)
+
+options(ggOceanMaps.userpath = here::here("data", "bathy", "gebco-gom.tif"))
+
 for (f in list.files(here("functions"), pattern = "^.*\\.R$", full.names = TRUE)){
   source(f)
 }

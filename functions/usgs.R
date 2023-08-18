@@ -86,9 +86,14 @@ usgs_guess_parameter_name = function(parameter = "00060", lut = usgs_parameter_l
 
 #' Returns a listing of USGS stream gauges that empty into the Gulf of Maine
 #' 
+#' @param filename char, the name of the file to read
+#' @param form char, one of 'table' or 'sf'
 #' @return tibble
-usgs_lut <- function(filename = here::here("data","usgs", "gom_stations.csv")) {
-  readr::read_csv(filename, show_col_types = FALSE)
+usgs_lut <- function(filename = here::here("data","usgs", "gom_stations.csv"),
+                     form = c("table", 'sf')[1]) {
+  x = readr::read_csv(filename, show_col_types = FALSE)
+  if (tolower(form[1]) == 'sf') x = sf::st_as_sf(x, coords = c('lon', 'lat'), crs = 4326)
+  x
 }
 
 
