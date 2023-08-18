@@ -29,7 +29,7 @@ win = 10
 s = surprise(x, win = win) |>
   dplyr::filter(date >= as.Date("1980-01-01"))
 
-plot_surprise(s, surprise = NULL)
+plot_surprise(s, surprise = NULL, title = NULL)
 ```
 
 ![](README-surprise_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
@@ -38,7 +38,7 @@ And plot again but this time as categorical “-surprise”, “no surprise”,
 “surprise” groups.
 
 ``` r
-plot_surprise(s, surprise = 2)
+plot_surprise(s, surprise = 2, title = NULL)
 ```
 
 ![](README-surprise_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
@@ -46,17 +46,19 @@ plot_surprise(s, surprise = 2)
 Now run again with the target variables using `median`, `q25` and `q75`.
 
 ``` r
-med = read_export(by = 'year', 
+med_st = read_export(by = 'year', 
                 standardize = TRUE, 
                 selection = read_target_vars(treatment = "median")) |>
-  dplyr::filter(date >= as.Date("1970-01-01"))
-g1 = plot_export(med, title = "Standardized Median by Year")
+  dplyr::filter(date >= as.Date("1970-01-01")) |>
+  replace_var_names()
+g1 = plot_export(med_st, title = "Standardized Median by Year")
 
-med = read_export(by = 'year', 
+med_sup = read_export(by = 'year', 
                 standardize = FALSE, 
                 selection = read_target_vars(treatment = "median")) |>
-  dplyr::filter(date >= as.Date("1970-01-01"))
-g2 = plot_surprise(surprise(med, win = 20), surprise = 2, title = "Median Surprise by Year")
+  dplyr::filter(date >= as.Date("1970-01-01")) |>
+  replace_var_names()
+g2 = plot_surprise(surprise(med_sup, win = 20), surprise = 2, title = "Median Surprise by Year")
 
 print(g1/g2)
 ```
@@ -67,13 +69,15 @@ print(g1/g2)
 q25 = read_export(by = 'year', 
                 standardize = TRUE, 
                 selection = read_target_vars(treatment = "q25")) |>
-  dplyr::filter(date >= as.Date("1970-01-01"))
+  dplyr::filter(date >= as.Date("1970-01-01")) |>
+  replace_var_names()
 g1 = plot_export(q25, title = "Standardized Q25 by Year")
 
 q25 = read_export(by = 'year', 
                 standardize = FALSE, 
                 selection = read_target_vars(treatment = "q25")) |>
-  dplyr::filter(date >= as.Date("1970-01-01"))
+  dplyr::filter(date >= as.Date("1970-01-01")) |>
+  replace_var_names()
 g2 = plot_surprise(surprise(q25, win = 20), surprise = 2, title = "Q25 Surprise by Year")
 
 print(g1/g2)
@@ -85,13 +89,15 @@ print(g1/g2)
 q75 = read_export(by = 'year', 
                 standardize = TRUE, 
                 selection = read_target_vars(treatment = "q75")) |>
-  dplyr::filter(date >= as.Date("1970-01-01"))
+  dplyr::filter(date >= as.Date("1970-01-01")) |>
+  replace_var_names()
 g1 = plot_export(q75, title = "Standardized Q75 by Year")
 
 q75 = read_export(by = 'year', 
                 standardize = FALSE, 
                 selection = read_target_vars(treatment = "q75")) |>
-  dplyr::filter(date >= as.Date("1970-01-01"))
+  dplyr::filter(date >= as.Date("1970-01-01")) |>
+  replace_var_names()
 g2 = plot_surprise(surprise(q75, win = 20), surprise = 2, title = "Q75 Surprise by Year")
 
 print(g1/g2)

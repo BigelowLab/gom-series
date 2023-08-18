@@ -31,6 +31,30 @@ read_target_vars = function(treatment = c("median", "q25", "q75", "none", "all")
 }
 
 
+
+#' Reads a lookup table of human readable variable names and replaces them in a tibble of analysis variables
+#' 
+#' @param x 
+#' @param path 
+#' @param file 
+#' @return a tibble similar to x with variable names as human readable version
+#' 
+#' 
+replace_var_names <- function(x, 
+                              file = here::here("data", "var_names.csv")) {
+  
+  var_names <- suppressMessages(readr::read_csv(file))
+  
+  lut <- var_names$analysis_name
+  names(lut) <- var_names$human_readable_name
+  
+  r <- x |>
+    dplyr::rename(dplyr::any_of(lut))
+  
+  return(r)
+}
+
+
 #' Returns a vector of variable names to use in gom-series analysis
 #' 
 #' @param x tibble returned from calling `read_export()`
@@ -70,6 +94,3 @@ analysis_vars <- function(x = read_export(selection = "all"),
   return(vars)
   
 }
-
-
-

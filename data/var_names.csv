@@ -1,0 +1,111 @@
+analysis_name,human_readable_name,units,location
+amo,AMO,,Atlantic Multidecadal Oscillation
+amo.median,AMO,,
+amo.q25,AMO,,
+amo.q75,AMO,,
+cal_index.fall,Cal fall,,GOM Calanus Index
+cal_index.spring,Cal spring,,GOM Calanus Index
+EaMeCoSh.chlor,EMCC (Chl),mg m^-3,Eastern Maine Coastal Shelf
+EaMeCoSh.chlor.median,EMCC (Chl),mg m^-4,
+EaMeCoSh.chlor.q25,EMCC (Chl),mg m^-5,
+EaMeCoSh.chlor.q75,EMCC (Chl),mg m^-6,
+EaMeCoSh.sst,EMCC (SST),Celsius,Eastern Maine Coastal Shelf
+EaMeCoSh.sst.median,EMCC (SST),Celsius,Eastern Maine Coastal Shelf
+EaMeCoSh.sst.q25,EMCC (SST),Celsius,Eastern Maine Coastal Shelf
+EaMeCoSh.sst.q75,EMCC (SST),Celsius,Eastern Maine Coastal Shelf
+GeorBnk.chlor,GBK (Chl),mg m^-4,Georges Bank
+GeorBnk.chlor.median,GBK (Chl),mg m^-5,Georges Bank
+GeorBnk.chlor.q25,GBK (Chl),mg m^-6,Georges Bank
+GeorBnk.chlor.q75,GBK (Chl),mg m^-7,Georges Bank
+GeorBnk.sst,GBK (SST),Celsius,Georges Bank
+GeorBnk.sst.median,GBK (SST),Celsius,Georges Bank
+GeorBnk.sst.q25,GBK (SST),Celsius,Georges Bank
+GeorBnk.sst.q75,GBK (SST),Celsius,Georges Bank
+GeorBsn.chlor,GB (Chl),mg m^-5,Georges Basin
+GeorBsn.chlor.median,GB (Chl),mg m^-6,Georges Basin
+GeorBsn.chlor.q25,GB (Chl),mg m^-7,Georges Basin
+GeorBsn.chlor.q75,GB (Chl),mg m^-8,Georges Basin
+GeorBsn.sst,GB (SST),Celsius,Georges Basin
+GeorBsn.sst.median,GB (SST),Celsius,Georges Basin
+GeorBsn.sst.q25,GB (SST),Celsius,Georges Basin
+GeorBsn.sst.q75,GB (SST),Celsius,Georges Basin
+GHCN.USC00171628.PRCP,Corinna Prcp,Daily - Precipitation (tenths of mm),"Corinna, ME"
+GHCN.USC00171628.PRCP.median,Corinna Prcp,Daily - Precipitation (tenths of mm),"Corinna, ME"
+GHCN.USC00171628.PRCP.q25,Corinna Prcp,Daily - Precipitation (tenths of mm),"Corinna, ME"
+GHCN.USC00171628.PRCP.q75,Corinna Prcp,Daily - Precipitation (tenths of mm),"Corinna, ME"
+GHCN.USC00171628.TMAX,Corinna Tmax,Daily - Maximum temperature (tenths of degrees C),"Corinna, ME"
+GHCN.USC00171628.TMAX.median,Corinna Tmax,Daily - Maximum temperature (tenths of degrees C),"Corinna, ME"
+GHCN.USC00171628.TMAX.q25,Corinna Tmax,Daily - Maximum temperature (tenths of degrees C),"Corinna, ME"
+GHCN.USC00171628.TMAX.q75,Corinna Tmax,Daily - Maximum temperature (tenths of degrees C),"Corinna, ME"
+GHCN.USC00171628.TMIN,Corinna Tmin,Daily - Minimum temperature (tenths of degrees C),"Corinna, ME"
+GHCN.USC00171628.TMIN.median,Corinna Tmin,Daily - Minimum temperature (tenths of degrees C),"Corinna, ME"
+GHCN.USC00171628.TMIN.q25,Corinna Tmin,Daily - Minimum temperature (tenths of degrees C),"Corinna, ME"
+GHCN.USC00171628.TMIN.q75,Corinna Tmin,Daily - Minimum temperature (tenths of degrees C),"Corinna, ME"
+GHCN.USC00190736.PRCP,Blue Hill Prcp,Daily - Precipitation (tenths of mm),"Blue Hill Coop, MA"
+GHCN.USC00190736.PRCP.median,Blue Hill Prcp,Daily - Precipitation (tenths of mm),"Blue Hill Coop, MA"
+GHCN.USC00190736.PRCP.q25,Blue Hill Prcp,Daily - Precipitation (tenths of mm),"Blue Hill Coop, MA"
+GHCN.USC00190736.PRCP.q75,Blue Hill Prcp,Daily - Precipitation (tenths of mm),"Blue Hill Coop, MA"
+GHCN.USC00190736.TMAX,Blue Hill  Tmax,Daily - Maximum temperature (tenths of degrees C),"Blue Hill Coop, MA"
+GHCN.USC00190736.TMAX.median,Blue Hill  Tmax,Daily - Maximum temperature (tenths of degrees C),"Blue Hill Coop, MA"
+GHCN.USC00190736.TMAX.q25,Blue Hill  Tmax,Daily - Maximum temperature (tenths of degrees C),"Blue Hill Coop, MA"
+GHCN.USC00190736.TMAX.q75,Blue Hill  Tmax,Daily - Maximum temperature (tenths of degrees C),"Blue Hill Coop, MA"
+GHCN.USC00190736.TMIN,Blue Hill  Tmin,Daily - Minimum temperature (tenths of degrees C),"Blue Hill Coop, MA"
+GHCN.USC00190736.TMIN.median,Blue Hill  Tmin,Daily - Minimum temperature (tenths of degrees C),"Blue Hill Coop, MA"
+GHCN.USC00190736.TMIN.q25,Blue Hill  Tmin,Daily - Minimum temperature (tenths of degrees C),"Blue Hill Coop, MA"
+GHCN.USC00190736.TMIN.q75,Blue Hill  Tmin,Daily - Minimum temperature (tenths of degrees C),"Blue Hill Coop, MA"
+GHCN.USC00272174.PRCP,Durham Prcp,Daily - Precipitation (tenths of mm),"Durham, NH"
+GHCN.USC00272174.PRCP.median,Durham Prcp,Daily - Precipitation (tenths of mm),"Durham, NH"
+GHCN.USC00272174.PRCP.q25,Durham Prcp,Daily - Precipitation (tenths of mm),"Durham, NH"
+GHCN.USC00272174.PRCP.q75,Durham Prcp,Daily - Precipitation (tenths of mm),"Durham, NH"
+GHCN.USC00272174.TMAX,Durham Tmax,Daily - Maximum temperature (tenths of degrees C),"Durham, NH"
+GHCN.USC00272174.TMAX.median,Durham Tmax,Daily - Maximum temperature (tenths of degrees C),"Durham, NH"
+GHCN.USC00272174.TMAX.q25,Durham Tmax,Daily - Maximum temperature (tenths of degrees C),"Durham, NH"
+GHCN.USC00272174.TMAX.q75,Durham Tmax,Daily - Maximum temperature (tenths of degrees C),"Durham, NH"
+GHCN.USC00272174.TMIN,Durham Tmin,Daily - Minimum temperature (tenths of degrees C),"Durham, NH"
+GHCN.USC00272174.TMIN.median,Durham Tmin,Daily - Minimum temperature (tenths of degrees C),"Durham, NH"
+GHCN.USC00272174.TMIN.q25,Durham Tmin,Daily - Minimum temperature (tenths of degrees C),"Durham, NH"
+GHCN.USC00272174.TMIN.q75,Durham Tmin,Daily - Minimum temperature (tenths of degrees C),"Durham, NH"
+gsi,GSI,,Gulf Stream Index
+gsi.median,GSI,,Gulf Stream Index
+gsi.q25,GSI,,Gulf Stream Index
+gsi.q75,GSI,,Gulf Stream Index
+hab_index.east,EMCC (HAB),,Eastern Maine - HAB Index
+hab_index.west,WMCC (HAB),,Western Maine - HAB Index
+JordBsn.chlor,JB (Chl),mg m^-6,Jordan Basin
+JordBsn.chlor.median,JB (Chl),mg m^-7,Jordan Basin
+JordBsn.chlor.q25,JB (Chl),mg m^-8,Jordan Basin
+JordBsn.chlor.q75,JB (Chl),mg m^-9,Jordan Basin
+JordBsn.sst,JB (SST),Celsius,Jordan Basin
+JordBsn.sst.median,JB (SST),Celsius,Jordan Basin
+JordBsn.sst.q25,JB (SST),Celsius,Jordan Basin
+JordBsn.sst.q75,JB (SST),Celsius,Jordan Basin
+nao,NAO,,North Atlantic Oscillation
+nao.median,NAO,,North Atlantic Oscillation
+nao.q25,NAO,,North Atlantic Oscillation
+nao.q75,NAO,,North Atlantic Oscillation
+PCI.fall.anom.log,PCI fall,,
+PCI.spring.anom.log,PCI spring,,
+USGS01022500.discharge,Narraguagus River,ft^3/s,"Narraguagus River at Cherryfield, Maine"
+USGS01022500.discharge.median,Narraguagus River,ft^3/s,"Narraguagus River at Cherryfield, Maine"
+USGS01022500.discharge.q25,Narraguagus River,ft^3/s,"Narraguagus River at Cherryfield, Maine"
+USGS01022500.discharge.q75,Narraguagus River,ft^3/s,"Narraguagus River at Cherryfield, Maine"
+USGS01059000.discharge,Androscoggin River,ft^3/s,"Androscoggin River near Auburn, Maine"
+USGS01059000.discharge.median,Androscoggin River,ft^3/s,"Androscoggin River near Auburn, Maine"
+USGS01059000.discharge.q25,Androscoggin River,ft^3/s,"Androscoggin River near Auburn, Maine"
+USGS01059000.discharge.q75,Androscoggin River,ft^3/s,"Androscoggin River near Auburn, Maine"
+WeCoSh.chlor,WMCC (Chl),mg m^-7,Western Maine Coastal Shelf
+WeCoSh.chlor.median,WMCC (Chl),mg m^-8,Western Maine Coastal Shelf
+WeCoSh.chlor.q25,WMCC (Chl),mg m^-9,Western Maine Coastal Shelf
+WeCoSh.chlor.q75,WMCC (Chl),mg m^-10,Western Maine Coastal Shelf
+WeCoSh.sst,WMCC (SST),Celsius,Western Maine Coastal Shelf
+WeCoSh.sst.median,WMCC (SST),Celsius,Western Maine Coastal Shelf
+WeCoSh.sst.q25,WMCC (SST),Celsius,Western Maine Coastal Shelf
+WeCoSh.sst.q75,WMCC (SST),Celsius,Western Maine Coastal Shelf
+WilkBsn.chlor,WB (Chl),mg m^-8,Wilkinson Basin
+WilkBsn.chlor.median,WB (Chl),mg m^-9,Wilkinson Basin
+WilkBsn.chlor.q25,WB (Chl),mg m^-10,Wilkinson Basin
+WilkBsn.chlor.q75,WB (Chl),mg m^-11,Wilkinson Basin
+WilkBsn.sst,WB (SST),Celsius,Wilkinson Basin
+WilkBsn.sst.median,WB (SST),Celsius,Wilkinson Basin
+WilkBsn.sst.q25,WB (SST),Celsius,Wilkinson Basin
+WilkBsn.sst.q75,WB (SST),Celsius,Wilkinson Basin
