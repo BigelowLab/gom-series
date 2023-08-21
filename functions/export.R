@@ -79,12 +79,14 @@ standardize_export = function(x, ...){
 #' @param selection 
 #' @param standardize logical, if TRUE the pass the variables through the \code{scale}
 #'   function so each variable has a mean of 0 and standard deviation of 1.
+#' @param replace_names logical, if TRUE replaces names with human readable ones
 #' @param ... other arguments passed to \code{scale}
 #' @return very wide tibble
 read_export = function(by = c("year", "month")[1],
                        path = here::here("data", "export"),
                        selection = list("all", read_target_vars())[[2]],
-                       standardize = FALSE, 
+                       standardize = FALSE,
+                       replace_names = FALSE,
                        ...){
   filename = file.path(path, sprintf("export_%s.csv.gz", by))
   if (!file.exists(filename)) stop("export file not found:", filename)
@@ -95,6 +97,10 @@ read_export = function(by = c("year", "month")[1],
   
   if (standardize){
     x = standardize_export(x, ...)
+  }
+  
+  if (replace_names) {
+    x <- replace_var_names(x)
   }
   x
 }
