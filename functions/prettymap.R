@@ -44,7 +44,9 @@ base_map = function(regions = read_regions(),
                       dplyr::filter(mgrepl(analysis_stations('usgs'), site_no, fixed = TRUE)),
                     shapes = c(buoy = 16,  #circle
                                usgs = 17,  # triangle 
-                               ghcn = 15) # square
+                               ghcn = 15), # square,
+                    currents = read_currents(), 
+                    bb = c(xmin = -72, ymin = 39, xmax = -62, ymax = 46)
                     ){
   
   
@@ -55,15 +57,23 @@ base_map = function(regions = read_regions(),
     buoys = NULL
     usgs = usgs_lut(form = 'sf') |>
       dplyr::filter(mgrepl(analysis_stations('usgs'), site_no, fixed = TRUE))
+    currents = read_currents()
   }
   
   if (inherits(buoys, 'data.frame') && nrow(buoys) == 0) buoys = NULL
   if (inherits(ghcn, 'data.frame') && nrow(ghcn) == 0) ghcn = NULL
   if (inherits(usgs, 'data.frame') && nrow(usgs) == 0) usgs = NULL
   
-  bb = sf::st_bbox(regions) |>
-    as.vector()
-  bb = bb[c(1,3,2,4)] + c(-.4, 0.2, -0.1, .2)
+  if (is.null(bb)){
+    bb = sf::st_bbox(regions) |>
+      as.vector()
+    bb = bb[c(1,3,2,4)] + c(-.4, 0.2, -0.1, .2)
+  } else {
+    bb = bb[c("xmin", "xmax", "ymin", "ymax")]
+  } 
+  
+  cat(str(bb), "\n")
+  BB = sf::st_bbox(bb, crs = 4326)
   
   regions = regions |>
     mutate(label = LETTERS[seq_len(nrow(regions))])
@@ -71,14 +81,29 @@ base_map = function(regions = read_regions(),
   gg = ggOceanMaps::basemap(limits = bb, 
                        bathymetry =  TRUE,
                        bathy.style = "raster_user_blues",
-                       legends = FALSE) +
+                       legends = FALSE)
+  
+  if (!is.null(currents)){
+    gg = gg + 
+      geom_sf(data = sf::st_crop(currents, BB),
+              
+              show.legend = FALSE,
+              arrow = grid::arrow(angle = 30, length = unit(0.25, "inches"),
+                                  ends = "last", type = "open"),
+              col = "grey", 
+              linewidth = 4)
+      
+  }
+  
+  gg = gg +  
     geom_sf(data = regions, 
-            mapping = aes(color = name), 
+            mapping = aes(color = display_name), 
             fill = NA, 
             linewidth = .8,
             show.legend = FALSE) +
     geom_sf_text(data = regions, 
-                  aes(label = name))
+                  aes(label = display_name),
+                 nudge_x = 0.1)
   
   if (!is.null(buoys)) {
     

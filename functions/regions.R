@@ -11,6 +11,23 @@ eastern_coastal_mask = function(){
 }
 
 
+#' Looks up a display name for a region
+region_display_name = function(x){
+  
+  sapply(x,
+         function(x){
+            switch(x[1],
+                   "Wilkinson Basin" = "WBN", 
+                   "Jordan Basin" = "JBN", 
+                   "Georges Basin" = "GBN",  
+                   "Georges Bank" = "GBK", 
+                   "Eastern Maine Coastal Shelf" = "EMCS", 
+                   "Western Coastal Shelf" = "WCS",
+                   "")
+         })
+}
+
+
 #' Read the regions database
 #' 
 #' @param filename char, the name of the file
@@ -33,8 +50,6 @@ read_regions <- function(filename = "gulf_of_maine_regions.gpkg",
   x <- sf::read_sf(filename) |>
     dplyr::select(-dplyr::any_of(c("objectid", "regionnum")), 
                   -dplyr::starts_with("area"))
-  
-
   
   if (split_coastal){
     suppressWarnings({
@@ -78,7 +93,10 @@ read_regions <- function(filename = "gulf_of_maine_regions.gpkg",
   
   shortnames = region_shortnames()
   name = rep("", nrow(x))
-  x = dplyr::mutate(x, name = shortnames[region], .after = 1)
+  x = dplyr::mutate(x, 
+                    name = shortnames[region], 
+                    display_name = region_display_name(region),
+                    .after = 1)
   x
 }
 

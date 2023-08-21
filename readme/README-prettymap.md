@@ -11,6 +11,10 @@ source("../setup.R")
 base_map()
 ```
 
+    ##  Named num [1:4] -72 -62 39 46
+    ##  - attr(*, "names")= chr [1:4] "xmin" "xmax" "ymin" "ymax"
+    ## 
+
 ![](README-prettymap_files/figure-gfm/unnamed-chunk-2-1.png)<!-- -->
 
 Figure X. A map view showing the extent of marine regions: GeorBnk =
