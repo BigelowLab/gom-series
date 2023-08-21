@@ -38,7 +38,7 @@ mar_map = function(){
 
 base_map = function(regions = read_regions(),
                     ghcn = ghcn_lut(),
-                    buoys = buoy_lut(form = 'sf'),
+                    buoys = NULL, #buoy_lut(form = 'sf'),
                     usgs = usgs_lut(form = 'sf')){
   
   
@@ -77,19 +77,32 @@ base_map = function(regions = read_regions(),
             linewidth = .8,
             show.legend = FALSE) +
     geom_sf_text(data = regions, 
-                  aes(label = name)) +
-    geom_sf(data = buoys,
-            color = "black", pch = 16, size = 6) +
-    geom_sf_text(data = buoys, 
-                 aes(label = label), color = 'white') +
-    geom_sf(data = ghcn,
-            color = "black", pch = 15, size = 6) +
-    geom_sf_text(data = ghcn, 
-                 aes(label = label), color = 'white') +
-    geom_sf(data = usgs,
-            color = "black", pch = 17, size = 6) +
-    geom_sf_text(data = usgs, 
-                 aes(label = label), color = 'white')
+                  aes(label = name))
+  
+  if (!is.null(buoys)) {
+    gg = gg + 
+      geom_sf(data = buoys,
+              color = "black", pch = 16, size = 6) +
+      geom_sf_text(data = buoys, 
+                   aes(label = label), color = 'white')
+  }
+  
+  if (!is.null(ghcn)){
+    gg = gg + 
+      geom_sf(data = ghcn,
+              color = "black", pch = 15, size = 6) +
+      geom_sf_text(data = ghcn, 
+                   aes(label = label), color = 'white')
+  }
+  
+  if (!is.null(usgs)){
+    gg = gg + 
+
+      geom_sf(data = usgs,
+              color = "black", pch = 17, size = 6) +
+      geom_sf_text(data = usgs, 
+                   aes(label = label), color = 'white')
+  }
   
   gg$labels$x = NULL
   gg$labels$y = NULL
