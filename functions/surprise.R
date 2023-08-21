@@ -34,7 +34,13 @@ plot_surprise = function(x = read_export(by = 'year') |>
                          clip_window = TRUE,
                          purge_empty = FALSE,
                          title = 'auto',
-                         y_text_angle = 0){
+                         y_text_angle = 0,
+                         cnames = c("AMO", "NAO", "GSI", "WCS (SST)", "EMCS (SST)", "GBK (SST)", "GBN (SST)", 
+                                    "JBN (SST)", "WBN (SST)", "Durham Tmin", "Blue Hill  Tmin", 
+                                    "Corinna Tmin", "Durham Tmax", "Blue Hill  Tmax", "Corinna Tmax", "Androscoggin River",
+                                    "WCS (Chl)", "EMCS (Chl)", "GBK (Chl)", "GBN (Chl)", "JBN (Chl)", "WBN (Chl)", 
+                                    "WMCC (HAB)", "EMCC (HAB)", "PCI spring", "PCI fall", 
+                                    "Cal spring", "Cal fall")){
   
   period = if(diff(x$date[1:2]) > 32){
     'Year'
@@ -71,13 +77,14 @@ plot_surprise = function(x = read_export(by = 'year') |>
     } 
   } # surprise or departure?
   
-  cnames = dplyr::select(x, -date) |> colnames()
+  #cnames = dplyr::select(x, -date) |> colnames()
   long = long_export(x) |>
-    dplyr::mutate(name = factor(name, levels = cnames))
+    dplyr::mutate(name = factor(name, levels = rev(cnames))) |>
+    tidyr::drop_na("name")
   
   gg = ggplot2::ggplot(long, ggplot2::aes(date, name)) +
     ggplot2::geom_tile(ggplot2::aes(fill = value), colour = "grey60") +
-    ggplot2::labs(x = "Date", 
+    ggplot2::labs(x = "", 
                   y = "", 
                   title = title) +
     ggplot2::scale_y_discrete(name = NULL, 
@@ -92,14 +99,14 @@ plot_surprise = function(x = read_export(by = 'year') |>
                                                       "no surprise", 
                                                       "-surprise", 
                                                       NA_character_),
-                                           type = c("+surprise" = "#de2d26",
-                                                    "no surprise" = "#ffffff", 
-                                                    "-surprise" = "#3182bd", 
-                                                    "NA" = "#f7f7f7")) 
+                                           type = c("+surprise" = get_color_red(),
+                                                    "no surprise" = get_color_white(), 
+                                                    "-surprise" = get_color_blue(), 
+                                                    "NA" = get_color_grey())) 
   } else {
-    gg = gg + ggplot2::scale_fill_gradient2(low = "blue", 
-                                            high = "red", 
-                                            na.value = "grey60", 
+    gg = gg + ggplot2::scale_fill_gradient2(low = get_color_blue(), 
+                                            high = get_color_red(), 
+                                            na.value = get_color_grey(), 
                                             name = "",
                                             limits = rng)
   }
