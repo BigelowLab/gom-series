@@ -37,36 +37,37 @@ mar_map = function(){
 #' Plot using ggOceanMaps
 
 base_map = function(regions = read_regions(),
-                    ghcn = ghcn_lut(),
+                    ghcn = ghcn_lut() |>
+                      dplyr::filter(mgrepl(analysis_stations('ghcn'), id, fixed = TRUE)),
                     buoys = NULL, #buoy_lut(form = 'sf'),
-                    usgs = usgs_lut(form = 'sf')){
+                    usgs = usgs_lut(form = 'sf') |>
+                      dplyr::filter(mgrepl(analysis_stations('usgs'), site_no, fixed = TRUE)),
+                    shapes = c(buoy = 16,  #circle
+                               usgs = 17,  # triangle 
+                               ghcn = 15) # square
+                    ){
   
   
   if (FALSE){
     regions = read_regions()
-    ghcn = ghcn_lut()
-    buoys = buoy_lut(form = 'sf')
-    usgs = usgs_lut(form = 'sf')
+    ghcn = ghcn_lut() |>
+      dplyr::filter(mgrepl(analysis_stations('ghcn'), id, fixed = TRUE))
+    buoys = NULL
+    usgs = usgs_lut(form = 'sf') |>
+      dplyr::filter(mgrepl(analysis_stations('usgs'), site_no, fixed = TRUE))
   }
+  
+  if (inherits(buoys, 'data.frame') && nrow(buoys) == 0) buoys = NULL
+  if (inherits(ghcn, 'data.frame') && nrow(ghcn) == 0) ghcn = NULL
+  if (inherits(usgs, 'data.frame') && nrow(usgs) == 0) usgs = NULL
   
   bb = sf::st_bbox(regions) |>
     as.vector()
   bb = bb[c(1,3,2,4)] + c(-.4, 0.2, -0.1, .2)
   
-  
-  
   regions = regions |>
     mutate(label = LETTERS[seq_len(nrow(regions))])
-  
-  buoys = buoys |>
-    mutate(label = substring(id, 1,1))
-  
-  ghcn = ghcn |>
-    mutate(label = LETTERS[seq_len(nrow(ghcn))])
-  
-  usgs = usgs |>
-    mutate(label = seq_len(nrow(usgs)))
-  
+
   gg = ggOceanMaps::basemap(limits = bb, 
                        bathymetry =  TRUE,
                        bathy.style = "raster_user_blues",
@@ -80,26 +81,38 @@ base_map = function(regions = read_regions(),
                   aes(label = name))
   
   if (!is.null(buoys)) {
+    
+    buoys = buoys |>
+      mutate(label = substring(id, 1,1))
+    
     gg = gg + 
       geom_sf(data = buoys,
-              color = "black", pch = 16, size = 6) +
+              color = "black", pch = shapes[['buoys']], size = 6) +
       geom_sf_text(data = buoys, 
                    aes(label = label), color = 'white')
   }
   
   if (!is.null(ghcn)){
+    
+    ghcn = ghcn |>
+      mutate(label = LETTERS[seq_len(nrow(ghcn))])
+    
     gg = gg + 
       geom_sf(data = ghcn,
-              color = "black", pch = 15, size = 6) +
+              color = "black", pch = shapes[['ghcn']], size = 6) +
       geom_sf_text(data = ghcn, 
                    aes(label = label), color = 'white')
   }
   
   if (!is.null(usgs)){
+    
+    
+    usgs = usgs |>
+      mutate(label = seq_len(nrow(usgs)))
+    
     gg = gg + 
-
       geom_sf(data = usgs,
-              color = "black", pch = 17, size = 6) +
+              color = "black", pch = shapes[['usgs']], size = 6) +
       geom_sf_text(data = usgs, 
                    aes(label = label), color = 'white')
   }

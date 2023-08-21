@@ -54,6 +54,19 @@ replace_var_names <- function(x,
   return(r)
 }
 
+#' Retrieve tge identifiers for staions used in analysis
+#' 
+#' @param what char, one of 'buoys', 'ghcn' or 'usgs'
+#' @return charcater vector or NULL if none selected
+analysis_stations = function(what = c("buoys", "usgs", "ghcn")[2]){
+  
+  switch(tolower(what[1]),
+         "usgs" = c("1059000", "1022500"),
+         "ghcn" = c("00272174", "00190736", "00171628"),
+         "buoys" = NULL)
+  
+}
+
 
 #' Returns a vector of variable names to use in gom-series analysis
 #' 
@@ -68,8 +81,8 @@ replace_var_names <- function(x,
 #'  
 analysis_vars <- function(x = read_export(selection = "all"),
                           sources = c("sst", "chlor.", "USGS", "GHCN", "amo", "nao", "gsi", "hab", "PCI", "cal"),
-                          usgs_stations = c("1059000", "1022500"),
-                          ghcn_stations = c("00272174", "00190736", "00171628"),
+                          usgs_stations = analysis_stations("usgs"),
+                          ghcn_stations =  analysis_stations("ghcn"),
                           ghcn_params = c("TMIN", "TMAX", "PRCP"),
                           treatment = c("median", "q25", "q75")[1]) {
   
