@@ -17,8 +17,9 @@ network <- function(x = read_export(),
     dplyr::filter(date >= as.Date(start)) |>
     dplyr::select(dplyr::all_of(include)) |>
     dplyr::select(dplyr::where(~abs(sum(., na.rm=TRUE)) > 0)) |>
+    replace_var_names() |>
     corrr::correlate() |>
     corrr::network_plot(min_cor = min_cor,
-                        colours = c("skyblue1", "white", "indianred2"))
+                        colours = c(get_color_blue(), get_color_white(), get_color_red()))
   
 }
