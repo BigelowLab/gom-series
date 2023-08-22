@@ -20,6 +20,6 @@ network <- function(x = read_export(),
     replace_var_names() |>
     corrr::correlate() |>
     corrr::network_plot(min_cor = min_cor,
-                        colours = c(get_color_blue(), get_color_white(), get_color_red()))
+                        colours = c(get_color("blue"), get_color("white"), get_color("red")))
   
 }

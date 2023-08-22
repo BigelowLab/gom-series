@@ -99,14 +99,14 @@ plot_surprise = function(x = read_export(by = 'year') |>
                                                       "no surprise", 
                                                       "-surprise", 
                                                       NA_character_),
-                                           type = c("+surprise" = get_color_red(),
-                                                    "no surprise" = get_color_white(), 
-                                                    "-surprise" = get_color_blue(), 
-                                                    "NA" = get_color_grey())) 
+                                           type = c("+surprise" = get_color("red"),
+                                                    "no surprise" = get_color("white"), 
+                                                    "-surprise" = get_color("blue"), 
+                                                    "NA" = get_color("grey60"))) 
   } else {
-    gg = gg + ggplot2::scale_fill_gradient2(low = get_color_blue(), 
-                                            high = get_color_red(), 
-                                            na.value = get_color_grey(), 
+    gg = gg + ggplot2::scale_fill_gradient2(low = get_color("blue"), 
+                                            high = get_color("red"), 
+                                            na.value = get_color("grey60"), 
                                             name = "",
                                             limits = rng)
   }

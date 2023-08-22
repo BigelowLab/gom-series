@@ -28,8 +28,11 @@ plot_wide = function(x = read_export(by = 'year') |>
     dplyr::mutate(name = factor(name, levels = cnames))
   
   ggplot2::ggplot(long, ggplot2::aes(date, name)) +
-    ggplot2::geom_tile(ggplot2::aes(fill = value), colour = "#f7f7f7") +
-    ggplot2::scale_fill_gradient2(low="blue", high="red", na.value="grey80", name="") + 
+    ggplot2::geom_tile(ggplot2::aes(fill = value), colour = get_color("#f7f7f7")) +
+    ggplot2::scale_fill_gradient2(low=get_color("blue"), 
+                                  high=get_color("red"), 
+                                  na.value=get_color("grey80"), 
+                                  name="") + 
     ggplot2::labs(x = "Date", 
                   y = "", 
                   title = title) +

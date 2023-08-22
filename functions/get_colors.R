@@ -17,3 +17,15 @@ get_color_grey <- function() {
 get_color_white <- function() {
   return("white")
 }
+
+
+#' Retrieve hex color(s) by name(s)
+#' 
+#' @param x char, one or more color names
+#' @return one or more color specifications
+get_color = function(x){
+  
+  col2rgb(x) |>
+    t() |>
+    rgb(maxColorValue = 255)
+}

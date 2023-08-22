@@ -189,8 +189,8 @@ year = aggregate_climate_indices(by = 'year', form = 'long') |>
 ggplot(data = year |> filter(measure == 'median'),
        aes(x = date, y = value, group = index)) +
   geom_line() +
-  geom_line(data = year |> filter(measure == 'min'), col = 'blue') + 
-  geom_line(data = year |> filter(measure == 'max'), col = 'orange') +
+  geom_line(data = year |> filter(measure == 'min'), col = get_color('blue')) + 
+  geom_line(data = year |> filter(measure == 'max'), col = get_color('orange')) +
   facet_wrap( ~ index)
 ```
 
