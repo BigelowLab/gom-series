@@ -12,7 +12,8 @@ filter to recent times.
 
 ``` r
 x = read_export(by = 'year', 
-                selection = read_target_vars(treatment = c("q25", "median", "q75")),
+                selection = read_target_vars(treatment = c("median")),
+                replace_names = TRUE, 
                 standardize = FALSE) |>
   dplyr::filter(date >= as.Date("1950-01-01")) |>
   dplyr::select(date, dplyr::contains(c("nao", "amo", "gsi"))) 
