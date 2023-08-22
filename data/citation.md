@@ -30,3 +30,21 @@
   + [North Atlantic Oscillation](https://psl.noaa.gov/data/correlation/nao.data)
   
   + [Gulf Stream Index (NAO)](https://noaa-edab.github.io/tech-doc/gulf-stream-index.html)
+
+## USGS - River Discharge
+
+  + U.S. Geological Survey, 2016, National Water Information System data available on the World Wide Web (USGS Water Data for the Nation), accessed [August 22, 2023], at URL [http://waterdata.usgs.gov/nwis/]. doi: 10.5066/F7P55KJN
+
+  + dataRetrieval: DeCicco L, Hirsch R, Lorenz D, Watkins D, Johnson M (2023). dataRetrieval: R packages for discovering and retrieving water data available from U.S. federal hydrologic web services. doi:10.5066/P9X4L3GE, https://code.usgs.gov/water/dataRetrieval.
+
+## GHCN Daily
+
+## Phytoplankton Color Index (PCI)
+
+## Calanus Index
+
+## HAB Index
+
+  Computed in-house per:
+
+  + DM, Anderson, Couture DA, Kleindinst JL, Keafer BA, McGillicuddy DJ Jr amd Martin JL, Richlen ML, Hickey JM, and Solow AR. 2014. “Understanding Interannual, Decadal Level Variability in Paralytic Shellfish Poisoning Toxicity in the Gulf of Maine: The HAB Index.” Deep-Sea Research. Part II, Topical Studies in Oceanography 103: 264–76.
