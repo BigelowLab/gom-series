@@ -61,7 +61,7 @@ replace_var_names <- function(x,
 analysis_stations = function(what = c("buoys", "usgs", "ghcn")[2]){
   
   switch(tolower(what[1]),
-         "usgs" = c("1059000", "1022500"),
+         "usgs" = c("1059000"), # , "1022500"),
          "ghcn" = c("00272174", "00190736", "00171628"),
          "buoys" = NULL)
   

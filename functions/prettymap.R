@@ -1,37 +1,3 @@
-mar_map = function(){
-  if (FALSE){
-    regions = read_regions()# |>
-    #mutate(name = factor(name)) |>
-    #group_by(region)
-    ghcn = ghcn_lut()
-    buoys = buoy_lut()
-    usgs = usgs_lut()
-    inflate = 0.1
-  }
-  bb = sf::st_bbox(regions) |>
-    as.vector()
-  bb = bb + inflate*c(-1,-1,1,1)
-  
-  library(marmap)
-  base <- getNOAA.bathy(lon1 = bb[1], lon2 = bb[3],
-                          lat1 = bb[2], lat2 = bb[4], 
-                          resolution = 2)
-  
-  blues <- c("lightsteelblue4", "lightsteelblue3", "lightsteelblue2", "lightsteelblue1")
-  # Plotting the bathymetry with different colors for land and sea
-  plot(base, 
-       image = TRUE, 
-       land = TRUE, 
-       lwd = 0.1, 
-       bpal = list(c(0, max(base), "grey"),
-                    c(min(base),0, blues)))
-  
-  
-  plot(base, deep = 0, shallow = 0, step = 0, lwd = 0.4)
-}
-
-
-
 
 
 #' Plot using ggOceanMaps
@@ -46,6 +12,8 @@ base_map = function(regions = read_regions(),
                                usgs = 17,  # triangle 
                                ghcn = 15), # square,
                     currents = read_currents(), 
+                    watersheds = read_watersheds() |>
+                      dplyr::filter(name == "Androscoggin"),
                     bb = c(xmin = -72, ymin = 39, xmax = -62, ymax = 46)
                     ){
   
@@ -58,11 +26,24 @@ base_map = function(regions = read_regions(),
     usgs = usgs_lut(form = 'sf') |>
       dplyr::filter(mgrepl(analysis_stations('usgs'), site_no, fixed = TRUE))
     currents = read_currents()
+    shapes = c(buoy = 16,  #circle
+               usgs = 17,  # triangle 
+               ghcn = 15) # square,
+    currents = read_currents()
+    watershed = read_watersheds() |>
+      dplyr::filter(name == "Androscoggin")
+    bb = c(xmin = -72, ymin = 39, xmax = -62, ymax = 46)
   }
   
   if (inherits(buoys, 'data.frame') && nrow(buoys) == 0) buoys = NULL
   if (inherits(ghcn, 'data.frame') && nrow(ghcn) == 0) ghcn = NULL
   if (inherits(usgs, 'data.frame') && nrow(usgs) == 0) usgs = NULL
+  if (inherits(currents, 'data.frame') && nrow(currents) == 0) {
+    currents = NULL 
+  } else {
+    currents = dplyr::rename(currents, Current = name)
+  }
+  if (inherits(watersheds, 'data.frame') && nrow(watersheds) == 0) watersheds = NULL
   
   if (is.null(bb)){
     bb = sf::st_bbox(regions) |>
@@ -72,7 +53,6 @@ base_map = function(regions = read_regions(),
     bb = bb[c("xmin", "xmax", "ymin", "ymax")]
   } 
   
-  cat(str(bb), "\n")
   BB = sf::st_bbox(bb, crs = 4326)
   
   regions = regions |>
@@ -83,24 +63,36 @@ base_map = function(regions = read_regions(),
                        bathy.style = "raster_user_blues",
                        legends = FALSE)
   
+  if (!is.null(watersheds)){
+    gg = gg +  
+      geom_sf(data = watersheds, 
+              #mapping = aes(color = display_name), 
+              fill = NA, 
+              linewidth = .8,
+              show.legend = FALSE,
+              col = get_color("white"))
+  }
+  
   if (!is.null(currents)){
     gg = gg + 
       geom_sf(data = sf::st_crop(currents, BB),
-              
-              show.legend = FALSE,
-              arrow = grid::arrow(angle = 30, length = unit(0.25, "inches"),
-                                  ends = "last", type = "open"),
-              col = "grey", 
-              linewidth = 4)
+              mapping = aes(color = Current),
+              show.legend = TRUE,
+              arrow = grid::arrow(angle = 30, length = unit(0.1, "inches"),
+                                  ends = "last", type = "closed"),
+              #col = "grey", 
+              linewidth = 3) #+ 
+      #theme(legend.title=element_blank())
       
   }
   
   gg = gg +  
     geom_sf(data = regions, 
-            mapping = aes(color = display_name), 
+            #mapping = aes(color = display_name), 
             fill = NA, 
             linewidth = .8,
-            show.legend = FALSE) +
+            show.legend = FALSE,
+            col = get_color("blue")) +
     geom_sf_text(data = regions, 
                   aes(label = display_name),
                  nudge_x = 0.1)
@@ -124,9 +116,11 @@ base_map = function(regions = read_regions(),
     
     gg = gg + 
       geom_sf(data = ghcn,
-              color = "black", pch = shapes[['ghcn']], size = 6) +
-      geom_sf_text(data = ghcn, 
-                   aes(label = label), color = 'white')
+              color = "black", pch = shapes[['ghcn']], size = 6) 
+    
+    if (nrow(ghcn) > 1) gg = gg + geom_sf_text(data = ghcn, 
+                                               aes(label = label), 
+                                               color = 'white')
   }
   
   if (!is.null(usgs)){
@@ -137,9 +131,10 @@ base_map = function(regions = read_regions(),
     
     gg = gg + 
       geom_sf(data = usgs,
-              color = "black", pch = shapes[['usgs']], size = 6) +
-      geom_sf_text(data = usgs, 
-                   aes(label = label), color = 'white')
+              color = "black", pch = shapes[['usgs']], size = 6)
+    if (nrow(usgs) > 1) gg = gg +  geom_sf_text(data = usgs, 
+                                                aes(label = label), 
+                                                color = 'white')
   }
   
   gg$labels$x = NULL
@@ -147,3 +142,38 @@ base_map = function(regions = read_regions(),
  
   gg 
 }
+
+mar_map = function(){
+  if (FALSE){
+    regions = read_regions()# |>
+    #mutate(name = factor(name)) |>
+    #group_by(region)
+    ghcn = ghcn_lut()
+    buoys = buoy_lut()
+    usgs = usgs_lut()
+    inflate = 0.1
+  }
+  bb = sf::st_bbox(regions) |>
+    as.vector()
+  bb = bb + inflate*c(-1,-1,1,1)
+  
+  library(marmap)
+  base <- getNOAA.bathy(lon1 = bb[1], lon2 = bb[3],
+                        lat1 = bb[2], lat2 = bb[4], 
+                        resolution = 2)
+  
+  blues <- c("lightsteelblue4", "lightsteelblue3", "lightsteelblue2", "lightsteelblue1")
+  # Plotting the bathymetry with different colors for land and sea
+  plot(base, 
+       image = TRUE, 
+       land = TRUE, 
+       lwd = 0.1, 
+       bpal = list(c(0, max(base), "grey"),
+                   c(min(base),0, blues)))
+  
+  
+  plot(base, deep = 0, shallow = 0, step = 0, lwd = 0.4)
+}
+
+
+
