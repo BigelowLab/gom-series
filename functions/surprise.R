@@ -27,9 +27,14 @@ plot_departure = function(x = read_export(by = 'year') |>
 #' @param title char or NULL, if NULL no title is added, if 'auto' then an title is 
 #'   automatically gueesed at, if any other string then use that
 #' @return ggplot object
-plot_surprise = function(x = read_export(by = 'year') |>
-                           dplyr::filter(date >= as.Date("1970-01-01")) |>
-                           surprise(win = 20), 
+plot_surprise = function(x = read_export(by = 'year', 
+                                         selection = read_target_vars(treatment = c("median")),
+                                         replace_names = TRUE, 
+                                         standardize = FALSE) |>
+                           dplyr::filter(date >= as.Date("1950-01-01")) |>
+                           dplyr::select(date, dplyr::contains(c("nao", "amo", "gsi"))) |>
+                           surprise(win = win) |>
+                           dplyr::filter(date >= as.Date("1980-01-01")) , 
                          surprise = 2,
                          clip_window = TRUE,
                          purge_empty = FALSE,
@@ -41,6 +46,30 @@ plot_surprise = function(x = read_export(by = 'year') |>
                                     "WCS (Chl)", "EMCS (Chl)", "GBK (Chl)", "GBN (Chl)", "JBN (Chl)", "WBN (Chl)", 
                                     "WMCC (HAB)", "EMCC (HAB)", "PCI spring", "PCI fall", 
                                     "Cal spring", "Cal fall")){
+  
+  if (FALSE){
+    x = read_export(by = 'year', 
+                    selection = read_target_vars(treatment = c("median")),
+                    replace_names = TRUE, 
+                    standardize = FALSE) |>
+      dplyr::filter(date >= as.Date("1950-01-01")) |>
+      dplyr::select(date, dplyr::contains(c("nao", "amo", "gsi"))) |>
+      surprise(win = win) |>
+      dplyr::filter(date >= as.Date("1980-01-01"))
+    
+    
+    surprise = 2
+    clip_window = TRUE
+    purge_empty = FALSE
+    title = 'auto'
+    y_text_angle = 0
+    cnames = c("AMO", "NAO", "GSI", "WCS (SST)", "EMCS (SST)", "GBK (SST)", "GBN (SST)", 
+               "JBN (SST)", "WBN (SST)", "Durham Tmin", "Blue Hill  Tmin", 
+               "Corinna Tmin", "Durham Tmax", "Blue Hill  Tmax", "Corinna Tmax", "Androscoggin River",
+               "WCS (Chl)", "EMCS (Chl)", "GBK (Chl)", "GBN (Chl)", "JBN (Chl)", "WBN (Chl)", 
+               "WMCC (HAB)", "EMCC (HAB)", "PCI spring", "PCI fall", 
+               "Cal spring", "Cal fall")
+  }
   
   period = if(diff(x$date[1:2]) > 32){
     'Year'
@@ -67,9 +96,19 @@ plot_surprise = function(x = read_export(by = 'year') |>
       r[which(iy)] = newvals
       factor(r, levels = c("+surprise", "no surprise", "-surprise"))
     }
-    x = dplyr::ungroup(x) |>
-      dplyr::mutate(dplyr::across(dplyr::where(is.numeric), \(x) recode_surprise(x, vals = isurprise)))
+      
+    dat = as.matrix(dplyr::select(x, -date)) |>
+      apply(1, function(x){
+        sum(findInterval(x, isurprise) != 1, na.rm = TRUE)/length(x)
+      })
+      
+    profile_data = dplyr::select(x, date) |>
+      dplyr::mutate(surprise = dat)
+  
+    x = dplyr::mutate(x, dplyr::across(dplyr::where(is.numeric), \(x) recode_surprise(x, vals = isurprise)))
     rng = c(-surprise, surprise)
+
+    
   } else {
     rng = table_range(dplyr::ungroup(x), na.rm = TRUE, collapse = TRUE)
     if (sign(rng[1]) < 0 && sign(rng[2]) > 0){
@@ -92,9 +131,17 @@ plot_surprise = function(x = read_export(by = 'year') |>
     ggplot2::theme_gray() + 
     ggplot2::theme(axis.text.x = element_text(size=10),
                    legend.title=element_blank())
+   
   
   if (!is.null(surprise)){
-    gg = gg + ggplot2::scale_fill_discrete(drop = FALSE,
+    gg = gg + 
+      
+      ggside::geom_xsidecol(mapping = aes(date, surprise),
+                             data = profile_data,
+                             show.legend = FALSE,
+                            orientation = 'x') +
+      
+      ggplot2::scale_fill_discrete(drop = FALSE,
                                            breaks = c("+surprise",
                                                       "no surprise", 
                                                       "-surprise", 
