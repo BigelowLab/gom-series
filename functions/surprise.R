@@ -1,3 +1,61 @@
+plot_departure_surprise = function(x = read_export(by = 'year', 
+                                          selection = read_target_vars(treatment = c("median")),
+                                          replace_names = TRUE, 
+                                          standardize = FALSE) |>
+                            dplyr::filter(date >= as.Date("1950-01-01")),
+                          surprise_window = 15, 
+                          surprise_threshold = 2,
+                          clip_window = TRUE,
+                          purge_empty = FALSE,
+                          title = 'auto',
+                          y_text_angle = 0,
+                          display_names = c("AMO", "NAO", "GSI", 
+                                            "WCS (SST)", "EMCS (SST)", "GBK (SST)", "GBN (SST)", 
+                                            "JBN (SST)", "WBN (SST)", 
+                                            "Durham Tmin", "Blue Hill Tmin", "Corinna Tmin", 
+                                            "Durham Tmax", "Blue Hill Tmax", "Corinna Tmax", 
+                                            "Androscoggin River", "Narraguagus River",
+                                            "WCS (Chl)", "EMCS (Chl)", "GBK (Chl)", "GBN (Chl)", "JBN (Chl)", "WBN (Chl)", 
+                                            "WMCC (HAB)", "EMCC (HAB)", 
+                                            "PCI spring", "PCI fall", 
+                                            "Cal spring", "Cal fall")){
+  if (FALSE){
+    x = read_export(by = 'year', 
+                    selection = read_target_vars(treatment = c("median")),
+                    replace_names = TRUE, 
+                    standardize = FALSE) |>
+      dplyr::filter(date >= as.Date("1950-01-01")) 
+
+    
+    surprise_window = 15
+    surprise_threshold = 2
+    clip_window = TRUE
+    purge_empty = FALSE
+    title = 'auto'
+    y_text_angle = 0
+    display_names = c("AMO", "NAO", "GSI", 
+               "WCS (SST)", "EMCS (SST)", "GBK (SST)", "GBN (SST)", 
+               "JBN (SST)", "WBN (SST)", 
+               "Durham Tmin", "Blue Hill Tmin", "Corinna Tmin", 
+               "Durham Tmax", "Blue Hill  Tmax", "Corinna Tmax", 
+               "Androscoggin River", "Narraguagus River",
+               "WCS (Chl)", "EMCS (Chl)", "GBK (Chl)", "GBN (Chl)", "JBN (Chl)", "WBN (Chl)", 
+               "WMCC (HAB)", "EMCC (HAB)", 
+               "PCI spring", "PCI fall", 
+               "Cal spring", "Cal fall")
+  }
+  
+  x <- x[c("date", display_names)]
+  
+  s = surprise(x, win = surprise_window)
+  
+  
+}
+
+
+
+#' THis is a wrapper around plot_surprise, but the surprise argument is always NULL
+#' 
 plot_departure = function(x = read_export(by = 'year') |>
                             dplyr::filter(date >= as.Date("1970-01-01")) |>
                             departure(win = 20),
@@ -161,6 +219,51 @@ plot_surprise = function(x = read_export(by = 'year',
   gg
 }
 
+
+#' Given a table of surprise, threshold and compute a label
+#' 
+#' @param x a table of surprises (plus a column of date)
+#' @param surprise_threshold numeric, defines +/- what constitutes a surprise
+#' @param surprise_names char, the labels to attach in order of (low, none, high)
+#' @return a list of profile_data (number of surprises per year),
+#'   then labeled surprise data, the surprise_threshold, the surprise labels and the range of surprise values
+recode_surprise = function(x, 
+                           surprise_threshold = 2,
+                           surprise_names = c("-surprise", "no surprise", "+surprise")){
+  
+  surprise_threshold = surprise_threshold * c(-1,1)
+  
+  recode_surprise_one = function(x, vals = c(-1, 1)){
+    iy = !is.na(x)
+    ix = findInterval(x[iy], vals) + 1
+    newvals = surprise_names[ix]
+    r = rep(NA_integer_, length(x))
+    r[which(iy)] = newvals
+    factor(r, levels = rev(surprise_names))
+  }
+
+  dat = as.matrix(dplyr::select(x, -date)) |>
+    apply(1, function(x){
+      sum(findInterval(x, surprise_threshold) != 1, na.rm = TRUE)/length(x)
+    })
+  
+  profile_data = dplyr::select(x, date) |>
+    dplyr::mutate(surprise = dat)
+  
+  labeled_data = dplyr::mutate(x, dplyr::across(dplyr::where(is.numeric), 
+                                                \(x) recode_surprise(x, vals = surprise_threshold)))
+  
+  list(
+    profile_data = profile_data,
+    labeled_data = labeled_data,
+    surprise = list(
+      threshold = threshold,
+      range = surprise_threshold,
+      snames = surprise_names
+      )
+  )
+  
+}
 
 
 #' Compute surprise index from a single vector or for all numeric columns in a

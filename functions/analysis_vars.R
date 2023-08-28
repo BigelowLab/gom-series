@@ -6,7 +6,7 @@
 #' @return character vector
 read_target_vars = function(treatment = c("median", "q25", "q75", "none", "all")[1],
                             no_treatment = c("PCI", "hab", "cal"),
-                            filename = here::here("data", "target_vars.txt")){
+                            filename = here::here("data", "variables", "target_vars.txt")){
           
   x <- readLines(filename[1])
   
@@ -41,7 +41,7 @@ read_target_vars = function(treatment = c("median", "q25", "q75", "none", "all")
 #' 
 #' 
 replace_var_names <- function(x, 
-                              file = here::here("data", "var_names.csv")) {
+                              file = here::here("data", "variables", "var_names.csv")) {
   
   var_names <- suppressMessages(readr::read_csv(file))
   
@@ -61,7 +61,7 @@ replace_var_names <- function(x,
 analysis_stations = function(what = c("buoys", "usgs", "ghcn")[2]){
   
   switch(tolower(what[1]),
-         "usgs" = c("1059000"), # , "1022500"),
+         "usgs" = c("1059000", "1022500"),
          "ghcn" = c("00272174", "00190736", "00171628"),
          "buoys" = NULL)
   
