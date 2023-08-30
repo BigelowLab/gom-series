@@ -1,24 +1,120 @@
+#' Given a LONG assembly, make a time-series plot
+#'
+#' @param x long assembly table
+#' @param caption NULL or char, for adding a caption
+#' @param title NULL or char, for adding a title
+#' @param what char or of 'std' or 'raw' to control what gets plotted
+#' @param facet logical, if TRUE facet by name
+#' @return ggplot object
+plot_departure_surprise_series = function(x = assemble_departure_surprise()$long |>
+                                            dplyr::filter(grepl("SST", name, fixed = TRUE)),
+                                          caption = NULL,
+                                          title = NULL,
+                                          what = c('std', 'raw')[1],
+                                          facet = FALSE){
+
+  
+  gg = ggplot2::ggplot(x, ggplot2::aes(date, .data[[what]])) +
+    ggplot2::geom_point(ggplot2::aes(color = name), 
+               show.legend = FALSE, 
+               shape = 1, 
+               size = 0.5) +
+    ggplot2::geom_smooth(ggplot2::aes(group = name, color = name), 
+                se = TRUE, 
+                linewidth = 0.75, 
+                show.legend = TRUE,
+                method = 'loess', formula = 'y ~ x') +
+  
+    ggplot2::geom_point(data = dplyr::filter(x, surprise), 
+                        ggplot2::aes(date, .data[[what]], color = name),
+               shape = 16,
+               size = 2) +
+    ggplot2::labs(
+      x = NULL, 
+      y = NULL, 
+      title = title,
+      caption = caption) + 
+    
+    ggplot2::theme(legend.title=ggplot2::element_blank())
+  
+  if (facet) gg = gg + facet_wrap(~name)
+  
+  gg
+  
+}
+
+
+
+#' Quickly assemble the all important long-form tally by data and name of
+#' the standardized score, the surprise label and a logical of surprise
+#' @param x tibble, not-standarized (so we can compute surprise) with human-readable names
+#' @param surprise_window numeric, the width of sliding window
+#' @param surprise_threshold numeric, number of standard deviatiosn that define a surprise
+#' @param display_names char, the name in order to display 
+assemble_departure_surprise = function(x = read_export(by = 'year', 
+                                                       selection = read_target_vars(treatment = c("median")),
+                                                       replace_names = TRUE, 
+                                                       standardize = FALSE) |>
+                                         dplyr::filter(date >= as.Date("1950-01-01")),
+                                       surprise_window = 20, 
+                                       surprise_threshold = 2,
+                                       display_names =  get_display_names()){
+  
+  x <- x[c("date", display_names)]
+  y = long_export(x) |>
+    dplyr::rename(raw = value)
+  
+  s = surprise(x, win = surprise_window)
+  
+  z = recode_surprise(s, surprise_threshold = surprise_threshold)
+  labels = long_export(z$labeled_data) |>
+    dplyr::rename(label = value) |>
+    dplyr::mutate(surprise = label %in% c("-surprise", "+surprise"))
+  
+  long = standardize_export(x) |>
+    long_export() |>
+    dplyr::left_join(labels, by = c("date", "name")) |>
+    dplyr::left_join(y, by = c("date", "name")) |>
+    dplyr::rename(std = value) |>
+    dplyr::relocate(raw, .before = std ) |>
+    dplyr::mutate(name = factor(name, levels = rev(display_names)))
+  
+  rng = range(long$std, na.rm = TRUE) |> abs() |> max()
+  rng = rng * c(-1, 1)
+  
+  list(
+    surprise_window = surprise_window, 
+    surprise_threshold = surprise_threshold,
+    range = rng, 
+    long = long
+  )
+}
+
+
+#' This plots departures (standardized long term) with surprises shown as dots
+#'
+#' @param x tibble, not-standarized (so we can compute surprise) with human-readable names
+#' @param surprise_window numeric, the width of sliding window
+#' @param surprise_threshold numeric, number of standard deviatiosn that define a surprise
+#' @param replace_names logical, if TRUE then use simple names
+#' @param clip_window logical, if TRUE then clip columns to left that are all NA
+#' @param pruge_empty logical if TRUE clip empty rows
+#' @param title char or NULL  if NULL then suppress title
+#' @param y_text_angle numeric, degress to rotate the y-text labels
+#' @param display_names char, the name in order to display 
 plot_departure_surprise = function(x = read_export(by = 'year', 
                                           selection = read_target_vars(treatment = c("median")),
                                           replace_names = TRUE, 
                                           standardize = FALSE) |>
                             dplyr::filter(date >= as.Date("1950-01-01")),
-                          surprise_window = 15, 
+                          surprise_window = 20, 
                           surprise_threshold = 2,
                           clip_window = TRUE,
                           purge_empty = FALSE,
-                          title = 'auto',
+                          title = NULL,
+                          caption = "auto",
                           y_text_angle = 0,
-                          display_names = c("AMO", "NAO", "GSI", 
-                                            "WCS (SST)", "EMCS (SST)", "GBK (SST)", "GBN (SST)", 
-                                            "JBN (SST)", "WBN (SST)", 
-                                            "Durham Tmin", "Blue Hill Tmin", "Corinna Tmin", 
-                                            "Durham Tmax", "Blue Hill Tmax", "Corinna Tmax", 
-                                            "Androscoggin River", "Narraguagus River",
-                                            "WCS (Chl)", "EMCS (Chl)", "GBK (Chl)", "GBN (Chl)", "JBN (Chl)", "WBN (Chl)", 
-                                            "WMCC (HAB)", "EMCC (HAB)", 
-                                            "PCI spring", "PCI fall", 
-                                            "Cal spring", "Cal fall")){
+                          display_names =  get_display_names()){
   if (FALSE){
     x = read_export(by = 'year', 
                     selection = read_target_vars(treatment = c("median")),
@@ -27,34 +123,70 @@ plot_departure_surprise = function(x = read_export(by = 'year',
       dplyr::filter(date >= as.Date("1950-01-01")) 
 
     
-    surprise_window = 15
+    surprise_window = 20
     surprise_threshold = 2
     clip_window = TRUE
     purge_empty = FALSE
-    title = 'auto'
+    title = NULL
+    caption = "auto"
     y_text_angle = 0
-    display_names = c("AMO", "NAO", "GSI", 
-               "WCS (SST)", "EMCS (SST)", "GBK (SST)", "GBN (SST)", 
-               "JBN (SST)", "WBN (SST)", 
-               "Durham Tmin", "Blue Hill Tmin", "Corinna Tmin", 
-               "Durham Tmax", "Blue Hill  Tmax", "Corinna Tmax", 
-               "Androscoggin River", "Narraguagus River",
-               "WCS (Chl)", "EMCS (Chl)", "GBK (Chl)", "GBN (Chl)", "JBN (Chl)", "WBN (Chl)", 
-               "WMCC (HAB)", "EMCC (HAB)", 
-               "PCI spring", "PCI fall", 
-               "Cal spring", "Cal fall")
+    display_names =  get_display_names()
+  }
+  
+  
+  if (!is.null(caption) && caption[1] == "auto"){
+    caption = sprintf("window: %i, threshold: %i", surprise_window, surprise_threshold)
   }
   
   x <- x[c("date", display_names)]
   
   s = surprise(x, win = surprise_window)
   
+  z = recode_surprise(s, surprise_threshold = surprise_threshold)
+  labels = long_export(z$labeled_data) |>
+    dplyr::rename(label = value) |>
+    dplyr::mutate(surprise = label %in% c("-surprise", "+surprise"))
   
+  long = standardize_export(x) |>
+    long_export() |>
+    dplyr::left_join(labels, by = c("date", "name")) |>
+    dplyr::mutate(name = factor(name, levels = rev(display_names)))
+  
+  rng = range(long$value, na.rm = TRUE) |> abs() |> max()
+  rng = rng * c(-1, 1)
+  
+  
+  ggplot2::ggplot(long, ggplot2::aes(date, name)) +
+    ggplot2::geom_tile(ggplot2::aes(fill = value), colour = get_color("grey90")) +
+    ggplot2::scale_fill_gradient2(low = get_color("blue"), 
+                                  high = get_color("red"), 
+                                  na.value = get_color("grey75"), 
+                                  name = "value",
+                                  limits = rng) + 
+    ggplot2::geom_point(data = dplyr::filter(long, surprise), # these are the surprises
+                   aes(date, name),
+                   color = get_color("black"),
+                   alpha = 0.8,
+                   size = 1,
+                   show.legend = FALSE) + 
+    ggside::geom_xsidecol(mapping = aes(date, surprise),  # this is the histogram of counts along top
+                          data = z$profile_data,
+                          show.legend = FALSE,
+                          orientation = 'x') + 
+    ggplot2::labs(x = NULL, 
+                  y = NULL,
+                  title = title,
+                  caption = caption) +
+    ggplot2::scale_y_discrete(name = NULL, 
+                              guide = guide_axis(angle = y_text_angle)) + 
+    ggplot2::theme_gray() + 
+    ggplot2::theme(axis.text.x = element_text(size=10),
+                   legend.title=element_blank()) 
 }
 
 
 
-#' THis is a wrapper around plot_surprise, but the surprise argument is always NULL
+#' This is a wrapper around plot_surprise, but the surprise argument is always NULL
 #' 
 plot_departure = function(x = read_export(by = 'year') |>
                             dplyr::filter(date >= as.Date("1970-01-01")) |>
@@ -98,12 +230,7 @@ plot_surprise = function(x = read_export(by = 'year',
                          purge_empty = FALSE,
                          title = 'auto',
                          y_text_angle = 0,
-                         cnames = c("AMO", "NAO", "GSI", "WCS (SST)", "EMCS (SST)", "GBK (SST)", "GBN (SST)", 
-                                    "JBN (SST)", "WBN (SST)", "Durham Tmin", "Blue Hill  Tmin", 
-                                    "Corinna Tmin", "Durham Tmax", "Blue Hill  Tmax", "Corinna Tmax", "Androscoggin River",
-                                    "WCS (Chl)", "EMCS (Chl)", "GBK (Chl)", "GBN (Chl)", "JBN (Chl)", "WBN (Chl)", 
-                                    "WMCC (HAB)", "EMCC (HAB)", "PCI spring", "PCI fall", 
-                                    "Cal spring", "Cal fall")){
+                         cnames = get_display_names()){
   
   if (FALSE){
     x = read_export(by = 'year', 
@@ -121,12 +248,7 @@ plot_surprise = function(x = read_export(by = 'year',
     purge_empty = FALSE
     title = 'auto'
     y_text_angle = 0
-    cnames = c("AMO", "NAO", "GSI", "WCS (SST)", "EMCS (SST)", "GBK (SST)", "GBN (SST)", 
-               "JBN (SST)", "WBN (SST)", "Durham Tmin", "Blue Hill  Tmin", 
-               "Corinna Tmin", "Durham Tmax", "Blue Hill  Tmax", "Corinna Tmax", "Androscoggin River",
-               "WCS (Chl)", "EMCS (Chl)", "GBK (Chl)", "GBN (Chl)", "JBN (Chl)", "WBN (Chl)", 
-               "WMCC (HAB)", "EMCC (HAB)", "PCI spring", "PCI fall", 
-               "Cal spring", "Cal fall")
+    cnames =  get_display_names()
   }
   
   period = if(diff(x$date[1:2]) > 32){
@@ -220,6 +342,22 @@ plot_surprise = function(x = read_export(by = 'year',
 }
 
 
+#' Retrieve a list of ordered human-friendly names
+#' 
+#' @return character vector of names
+get_display_names = function(){
+  c("AMO", "NAO", "GSI", 
+    "WCS (SST)", "EMCS (SST)", "GBK (SST)", "GBN (SST)", 
+    "JBN (SST)", "WBN (SST)", 
+    "Durham Tmin", "Blue Hill Tmin", "Corinna Tmin", 
+    "Durham Tmax", "Blue Hill Tmax", "Corinna Tmax", 
+    "Androscoggin River", "Narraguagus River",
+    "WCS (Chl)", "EMCS (Chl)", "GBK (Chl)", "GBN (Chl)", "JBN (Chl)", "WBN (Chl)", 
+    "WMCC (HAB)", "EMCC (HAB)", 
+    "PCI spring", "PCI fall", 
+    "Cal spring", "Cal fall")
+}
+
 #' Given a table of surprise, threshold and compute a label
 #' 
 #' @param x a table of surprises (plus a column of date)
@@ -231,7 +369,7 @@ recode_surprise = function(x,
                            surprise_threshold = 2,
                            surprise_names = c("-surprise", "no surprise", "+surprise")){
   
-  surprise_threshold = surprise_threshold * c(-1,1)
+  threshold = surprise_threshold * c(-1,1)
   
   recode_surprise_one = function(x, vals = c(-1, 1)){
     iy = !is.na(x)
@@ -244,22 +382,21 @@ recode_surprise = function(x,
 
   dat = as.matrix(dplyr::select(x, -date)) |>
     apply(1, function(x){
-      sum(findInterval(x, surprise_threshold) != 1, na.rm = TRUE)/length(x)
+      sum(findInterval(x, threshold) != 1, na.rm = TRUE)/length(x)
     })
   
   profile_data = dplyr::select(x, date) |>
     dplyr::mutate(surprise = dat)
   
   labeled_data = dplyr::mutate(x, dplyr::across(dplyr::where(is.numeric), 
-                                                \(x) recode_surprise(x, vals = surprise_threshold)))
+                                                \(x) recode_surprise_one(x, vals = threshold)))
   
   list(
     profile_data = profile_data,
     labeled_data = labeled_data,
     surprise = list(
-      threshold = threshold,
-      range = surprise_threshold,
-      snames = surprise_names
+      range = threshold,
+      names = surprise_names
       )
   )
   
@@ -321,6 +458,9 @@ surprise <- function(datain = read_export(by = 'year'), win = 30){
   #}
   #return(dataout[,1, drop = TRUE])
 }
+
+
+
 
 
 
