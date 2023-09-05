@@ -8,7 +8,8 @@ base_map = function(regions = read_regions(),
                     buoys = NULL, #buoy_lut(form = 'sf'),
                     usgs = usgs_lut(form = 'sf') |>
                       dplyr::filter(mgrepl(analysis_stations('usgs'), site_no, fixed = TRUE)),
-                    shapes = c(buoy = 16,  #circle
+                    shapes = c(region = 16, 
+                               buoy = 16,  #circle
                                usgs = 17,  # triangle 
                                ghcn = 15), # square,
                     currents = read_currents(), 
@@ -25,7 +26,8 @@ base_map = function(regions = read_regions(),
     usgs = usgs_lut(form = 'sf') |>
       dplyr::filter(mgrepl(analysis_stations('usgs'), site_no, fixed = TRUE))
     currents = read_currents()
-    shapes = c(buoy = 16,  #circle
+    shapes = c(region = 16, # circle
+               buoy = 16,  #circle
                usgs = 17,  # triangle 
                ghcn = 15) # square,
     currents = read_currents()
@@ -58,6 +60,7 @@ base_map = function(regions = read_regions(),
 
   gg = ggOceanMaps::basemap(limits = bb, 
                        bathymetry =  TRUE,
+                       land.col = get_color("grey80"),
                        bathy.style = "raster_user_blues",
                        legends = FALSE)
   
@@ -68,34 +71,36 @@ base_map = function(regions = read_regions(),
               fill = NA, 
               linewidth = .8,
               show.legend = FALSE,
-              col = get_color("white"))
+              col = get_color("grey10"))
   }
   
   if (!is.null(currents)){
     gg = gg + 
       geom_sf(data = sf::st_crop(currents, BB),
               #mapping = aes(color = Current),
-              color = get_color("darkorange3"),
+              color = get_color("grey50"),
               alpha = 1,
               show.legend = TRUE,
               arrow = grid::arrow(angle = 30, length = unit(0.1, "inches"),
                                   ends = "last", type = "closed"),
-              #col = "grey", 
-              linewidth = 3) #+ 
-      #theme(legend.title=element_blank())
+              linewidth = 3)
       
   }
   
+  
   gg = gg +  
     geom_sf(data = regions, 
-            #mapping = aes(color = display_name), 
             fill = NA, 
             linewidth = .8,
             show.legend = FALSE,
             col = get_color("blue")) +
-    geom_sf_text(data = regions, 
-                  aes(label = display_name),
-                 nudge_x = 0.1)
+    #geom_sf_text(data = regions, 
+    #             aes(label = display_name),
+    #             position = position_region())
+    geom_sf(data = st_centroid(regions),
+            color = get_color("blue"), pch = shapes[['region']], size = 6) +
+    geom_sf_text(data = st_centroid(regions), 
+                 aes(label = label), color = 'white')
   
   if (!is.null(buoys)) {
     
