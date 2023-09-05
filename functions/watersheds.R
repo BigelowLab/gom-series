@@ -4,7 +4,5 @@
 #' @param return sf table of watershed polygons
 read_watersheds = function(path = here::here("data", "watersheds")){
   
-  ff = list.files(path, full.names = TRUE)
-  lapply(ff, sf::read_sf) |>
-    dplyr::bind_rows()
+ sf::read_sf(file.path(path, 'watersheds.gpkg'))
 }

@@ -12,8 +12,7 @@ base_map = function(regions = read_regions(),
                                usgs = 17,  # triangle 
                                ghcn = 15), # square,
                     currents = read_currents(), 
-                    watersheds = read_watersheds() |>
-                      dplyr::filter(name == "Androscoggin"),
+                    watersheds = read_watersheds(),
                     bb = c(xmin = -72, ymin = 39, xmax = -62, ymax = 46)
                     ){
   
@@ -30,8 +29,7 @@ base_map = function(regions = read_regions(),
                usgs = 17,  # triangle 
                ghcn = 15) # square,
     currents = read_currents()
-    watershed = read_watersheds() |>
-      dplyr::filter(name == "Androscoggin")
+    watershed = read_watersheds()
     bb = c(xmin = -72, ymin = 39, xmax = -62, ymax = 46)
   }
   
@@ -76,7 +74,9 @@ base_map = function(regions = read_regions(),
   if (!is.null(currents)){
     gg = gg + 
       geom_sf(data = sf::st_crop(currents, BB),
-              mapping = aes(color = Current),
+              #mapping = aes(color = Current),
+              color = get_color("darkorange3"),
+              alpha = 1,
               show.legend = TRUE,
               arrow = grid::arrow(angle = 30, length = unit(0.1, "inches"),
                                   ends = "last", type = "closed"),
