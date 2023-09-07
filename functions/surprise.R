@@ -347,12 +347,12 @@ plot_surprise = function(x = read_export(by = 'year',
 #' @return character vector of names
 get_display_names = function(){
   c("AMO", "NAO", "GSI", 
-    "WCS (SST)", "EMCS (SST)", "GBK (SST)", "GBN (SST)", 
+    "WMCC (SST)", "EMCC (SST)", "GBK (SST)", "GBN (SST)", 
     "JBN (SST)", "WBN (SST)", 
     "Durham Tmin", "Blue Hill Tmin", "Corinna Tmin", 
     "Durham Tmax", "Blue Hill Tmax", "Corinna Tmax", 
     "Androscoggin River", "Narraguagus River",
-    "WCS (Chl)", "EMCS (Chl)", "GBK (Chl)", "GBN (Chl)", "JBN (Chl)", "WBN (Chl)", 
+    "WMCC (Chl)", "EMCC (Chl)", "GBK (Chl)", "GBN (Chl)", "JBN (Chl)", "WBN (Chl)", 
     "WMCC (HAB)", "EMCC (HAB)", 
     "PCI spring", "PCI fall", 
     "Cal spring", "Cal fall")

@@ -5,14 +5,14 @@ amo.q25,AMO,,
 amo.q75,AMO,,
 cal_index.fall,Cal fall,,GOM Calanus Index
 cal_index.spring,Cal spring,,GOM Calanus Index
-EaMeCoSh.chlor,EMCS (Chl),mg m^-3,Eastern Maine Coastal Shelf
-EaMeCoSh.chlor.median,EMCS (Chl),mg m^-3,
-EaMeCoSh.chlor.q25,EMCS (Chl),mg m^-3,
-EaMeCoSh.chlor.q75,EMCS (Chl),mg m^-3,
-EaMeCoSh.sst,EMCS (SST),Celsius,Eastern Maine Coastal Shelf
-EaMeCoSh.sst.median,EMCS (SST),Celsius,Eastern Maine Coastal Shelf
-EaMeCoSh.sst.q25,EMCS (SST),Celsius,Eastern Maine Coastal Shelf
-EaMeCoSh.sst.q75,EMCS (SST),Celsius,Eastern Maine Coastal Shelf
+EaMeCoSh.chlor,EMCC (Chl),mg m^-3,Eastern Maine Coastal Shelf
+EaMeCoSh.chlor.median,EMCC (Chl),mg m^-3,
+EaMeCoSh.chlor.q25,EMCC (Chl),mg m^-3,
+EaMeCoSh.chlor.q75,EMCC (Chl),mg m^-3,
+EaMeCoSh.sst,EMCC (SST),Celsius,Eastern Maine Coastal Shelf
+EaMeCoSh.sst.median,EMCC (SST),Celsius,Eastern Maine Coastal Shelf
+EaMeCoSh.sst.q25,EMCC (SST),Celsius,Eastern Maine Coastal Shelf
+EaMeCoSh.sst.q75,EMCC (SST),Celsius,Eastern Maine Coastal Shelf
 GeorBnk.chlor,GBK (Chl),mg m^-3,Georges Bank
 GeorBnk.chlor.median,GBK (Chl),mg m^-3,Georges Bank
 GeorBnk.chlor.q25,GBK (Chl),mg m^-3,Georges Bank
@@ -93,14 +93,14 @@ USGS01059000.discharge,Androscoggin River,ft^3/s,"Androscoggin River near Auburn
 USGS01059000.discharge.median,Androscoggin River,ft^3/s,"Androscoggin River near Auburn, Maine"
 USGS01059000.discharge.q25,Androscoggin River,ft^3/s,"Androscoggin River near Auburn, Maine"
 USGS01059000.discharge.q75,Androscoggin River,ft^3/s,"Androscoggin River near Auburn, Maine"
-WeCoSh.chlor,WCS (Chl),mg m^-3,Western Maine Coastal Shelf
-WeCoSh.chlor.median,WCS (Chl),mg m^-3,Western Maine Coastal Shelf
-WeCoSh.chlor.q25,WCS (Chl),mg m^-3,Western Maine Coastal Shelf
-WeCoSh.chlor.q75,WCS (Chl),mg m^-3,Western Maine Coastal Shelf
-WeCoSh.sst,WCS (SST),Celsius,Western Maine Coastal Shelf
-WeCoSh.sst.median,WCS (SST),Celsius,Western Maine Coastal Shelf
-WeCoSh.sst.q25,WCS (SST),Celsius,Western Maine Coastal Shelf
-WeCoSh.sst.q75,WCS (SST),Celsius,Western Maine Coastal Shelf
+WeCoSh.chlor,WMCC (Chl),mg m^-3,Western Maine Coastal Shelf
+WeCoSh.chlor.median,WMCC (Chl),mg m^-3,Western Maine Coastal Shelf
+WeCoSh.chlor.q25,WMCC (Chl),mg m^-3,Western Maine Coastal Shelf
+WeCoSh.chlor.q75,WMCC (Chl),mg m^-3,Western Maine Coastal Shelf
+WeCoSh.sst,WMCC (SST),Celsius,Western Maine Coastal Shelf
+WeCoSh.sst.median,WMCC (SST),Celsius,Western Maine Coastal Shelf
+WeCoSh.sst.q25,WMCC (SST),Celsius,Western Maine Coastal Shelf
+WeCoSh.sst.q75,WMCC (SST),Celsius,Western Maine Coastal Shelf
 WilkBsn.chlor,WBN (Chl),mg m^-3,Wilkinson Basin
 WilkBsn.chlor.median,WBN (Chl),mg m^-3,Wilkinson Basin
 WilkBsn.chlor.q25,WBN (Chl),mg m^-3,Wilkinson Basin
