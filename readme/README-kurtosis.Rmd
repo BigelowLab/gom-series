@@ -1,0 +1,56 @@
+---
+title: "Kurtosis of Surprise Windows"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+source("../setup.R")
+```
+
+```{r}
+x = read_export(by = 'year', 
+                selection = read_target_vars(treatment = c("median")),
+                replace_names = TRUE, 
+                standardize = FALSE) |>
+    dplyr::filter(date >= as.Date("1950-01-01"))
+```
+
+
+```{r}
+windows <- seq(3, 40, 1)
+k_w <- tibble()
+
+for (w in windows) {
+  
+  s = surprise(x, win = w)
+  
+  k <- kurtosis(s, na.rm=TRUE) 
+  
+  k_w <- bind_rows(k_w, k) 
+}
+
+glimpse(k_w)
+```
+
+```{r}
+z <- k_w |>
+  mutate(window = windows) |>
+  pivot_longer(cols = `Androscoggin River`:`Cal fall`, names_to = "var", values_to = "kurtosis")
+
+z
+```
+
+```{r}
+ggplot(data=z, aes(x=window, y=kurtosis)) +
+  geom_point()
+```
+
+```{r}
+z |>
+  arrange(desc(kurtosis))
+```
+
