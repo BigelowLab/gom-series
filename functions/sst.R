@@ -1,7 +1,7 @@
 #' Aggregate OISST daily data by month or year
 #'
 #' @param x table of USGS daily data for one or more sites (identified by site_no)
-#' @param by string, the interbval over which to aggregate - one of month or year although
+#' @param by string, the interval over which to aggregate - one of month or year although
 #'   OISST comes natively as monthly aggregations.  So this really only handles by 
 #'   year.
 #' @return tibble with aggregate stats 

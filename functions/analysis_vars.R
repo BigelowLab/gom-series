@@ -80,7 +80,7 @@ analysis_stations = function(what = c("buoys", "usgs", "ghcn")[2]){
 #'  
 #'  
 analysis_vars <- function(x = read_export(selection = "all"),
-                          sources = c("sst", "chlor.", "USGS", "GHCN", "amo", "nao", "gsi", "hab", "PCI", "cal"),
+                          sources = c("ersst", "sst", "chlor.", "USGS", "GHCN", "amo", "nao", "gsi", "hab", "PCI", "cal"),
                           usgs_stations = analysis_stations("usgs"),
                           ghcn_stations =  analysis_stations("ghcn"),
                           ghcn_params = c("TMIN", "TMAX", "PRCP"),

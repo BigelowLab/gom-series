@@ -12,6 +12,7 @@ GHCN.USC00171628.TMIN
 nao
 amo
 gsi
+ersst
 EaMeCoSh.sst
 GeorBnk.sst
 GeorBsn.sst

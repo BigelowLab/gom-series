@@ -115,11 +115,13 @@ read_export = function(by = c("year", "month")[1],
 #' @param by char the interval to aggregate over (one of 'year' or 'month')
 #' @param ofile char or NULL, if not NULL then write to this file. If NULL write nothing
 #' @return a very very very wide aggregate table
-export = function(what = c("all","sst", "chlor", "bswm", "usgs", "ghcn", "climate", "hab", "buoys", "pci", "calanus")[1],
+export = function(what = c("all","sst", "chlor", "bswm", "usgs", "ghcn", 
+                           "climate", "hab", "buoys", "pci", "calanus", "ersst")[1],
                   by = c("year", "month")[1], 
                   ofile = here::here("data", "export", sprintf("export_%s.csv.gz", by))){
  
-  if ("all" %in% what) what = c("sst", "chlor", "bswm", "usgs", "ghcn", "climate", "hab", "buoys","pci", "calanus")
+  if ("all" %in% what) what = c("sst", "chlor", "bswm", "usgs", "ghcn", 
+                                "climate", "hab", "buoys","pci", "calanus", "ersst")
   
   xx = sapply(what,
               function(w){
@@ -133,7 +135,8 @@ export = function(what = c("all","sst", "chlor", "bswm", "usgs", "ghcn", "climat
                        "hab" = export_hab_index(by = by),
                        "pci" = export_pci(by = by),
                        "bswm" = export_bswm(by=by),
-                       "calanus" = export_calanus(by=by)
+                       "calanus" = export_calanus(by=by),
+                       "ersst" = export_ersst(by = by)
                 ) # switch
               }, simplify = FALSE)
   

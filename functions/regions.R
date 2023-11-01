@@ -35,6 +35,7 @@ region_display_name = function(x){
 #' @param split_coastal logical, if TRUE, split the coast of Maine
 #' @param form char, one of 'raw', 'bbox' or 'chull' 
 #' @param keep char, one or more regions to keep, or "all" to keep all
+#' @param union logical, if TRUE compute the union of all the regions
 #' @return sf object
 read_regions <- function(filename = "gulf_of_maine_regions.gpkg",
                          path = here::here("data", "regions"),
@@ -42,7 +43,8 @@ read_regions <- function(filename = "gulf_of_maine_regions.gpkg",
                          form = c("raw", "bbox", "chull")[1],
                          keep = c("Wilkinson Basin", "Jordan Basin", "Georges Basin",  
                                   "Georges Bank", "Eastern Maine Coastal Shelf", 
-                                  "Western Coastal Shelf")){
+                                  "Western Coastal Shelf"),
+                         union = FALSE){
   #Jordan Basin, Wilkinson Basin, Georges Basin, Georges Bank, EMCC, WMCC
   filename = file.path(path, filename[1])
   if (!file.exists(filename)) stop("file not found:", filename)
@@ -97,6 +99,14 @@ read_regions <- function(filename = "gulf_of_maine_regions.gpkg",
                     name = shortnames[region], 
                     display_name = region_display_name(region),
                     .after = 1)
+  
+  if (union){
+    x = sf::st_union(x)
+    x = switch(tolower(form[1]),
+        "bbox" = sf::st_bbox(x),
+        "chull" =  sf::st_convex_hull(x),
+        x)
+  }
   x
 }
 

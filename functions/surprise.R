@@ -117,7 +117,7 @@ plot_departure_surprise = function(x = read_export(by = 'year',
                           display_names =  get_display_names()){
   if (FALSE){
     x = read_export(by = 'year', 
-                    selection = read_target_vars(treatment = c("median")),
+                    selection = read_target_vars(treatment = "median"),
                     replace_names = TRUE, 
                     standardize = FALSE) |>
       dplyr::filter(date >= as.Date("1950-01-01")) 
@@ -347,6 +347,7 @@ plot_surprise = function(x = read_export(by = 'year',
 #' @return character vector of names
 get_display_names = function(){
   c("AMO", "NAO", "GSI", 
+    "ERSST",
     "WMCC (SST)", "EMCC (SST)", "GBK (SST)", "GBN (SST)", 
     "JBN (SST)", "WBN (SST)", 
     "Durham Tmin", "Blue Hill Tmin", "Corinna Tmin", 

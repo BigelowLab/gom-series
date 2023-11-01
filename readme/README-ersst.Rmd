@@ -1,0 +1,41 @@
+---
+title: "GOM-series ERSST"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, warning = FALSE, message = FALSE}
+source("../setup.R")
+```
+
+### ERSST monthly means
+
+We downloaded monthly mean SST data from [ERSST](https://www.ncei.noaa.gov/products/extended-reconstructed-sst). We have downloaded this data previously using the [ersst](https://github.com/BigelowLab/ersst) R package.  
+
+
+```{r, message = FALSE}
+x <- read_ersst() |> 
+  aggregate_ersst(by = "year") |>
+  glimpse()
+```
+
+```{r, message = FALSE}
+ggplot(data = x, aes(x = date, y = mean)) +
+  geom_line() + 
+  labs(y = "Annual Mean ERSST") + 
+  geom_smooth(method = "lm", se = TRUE, color = "black") +
+  geom_smooth(aes(x = date, y = q25), color = "red") + 
+  geom_smooth(aes(x = date, y = q75), color = "blue")
+```
+
+
+### Updating the local dataset
+
+It's easy to build or renew the local dataset.
+
+```
+r <- fetch_oisst()
+```
