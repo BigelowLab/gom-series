@@ -5,7 +5,7 @@ Reviewing Surprise
 source("../setup.R")
 ```
 
-    ## here() starts at /mnt/s1/projects/ecocast/projects/nrecord/gom-series
+    ## here() starts at /Users/jevanilla/Documents/Bigelow/CODE/gom-series
 
 Below is a plot that shows standardized departures relative to the long
 term mean with “surprises” indicated with a dot.
@@ -99,12 +99,12 @@ plot_surprise_series(x, highlight = 2001, title = "2001") |>
 
 ![](README-surprise-review_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
 
-The surprise metric for 2003 is quite different. The 2003 HAB value has
-departed greatly from the linear model fitted to the preceding 20
-years - thus the dotted lines representing the measured surprise are
-widely spaced. Widely enough, in fact, to exceed the chosen threshold of
-twp shown in the orange dashed line. This is what makes 2003 a surprise,
-but just barely.
+The surprise metric for 2003 is quite different than for 2001. The 2003
+HAB value has departed greatly from the linear model fitted to the
+preceding 20 years - thus the dotted lines representing the measured
+surprise are widely spaced. Widely enough, in fact, to exceed the chosen
+threshold of twp shown in the orange dashed line. This is what makes
+2003 a surprise, but just barely.
 
 ``` r
 plot_surprise_series(x, highlight = 2003, title = "2003") |>
