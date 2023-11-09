@@ -1,1 +1,3 @@
 Salinity from Whitman 2015
+
+https://www.researchgate.net/publication/304129034_Reconstructing_Late_Holocene_Hydrographic_Variability_of_the_Gulf_of_Maine
