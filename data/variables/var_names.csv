@@ -1,6 +1,7 @@
 analysis_name,human_readable_name,units,location
 ersst, ERSST, Celsius, Gulf of Maine
 ersst.median, ERSST, Celsius, Gulf of Maine
+ersst.mean, ERSST, Celsius, Gulf of Maine
 amo,AMO,,Atlantic Multidecadal Oscillation
 amo.median,AMO,,
 amo.q25,AMO,,
