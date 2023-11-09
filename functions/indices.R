@@ -262,7 +262,7 @@ long_climate = function(x = read_climate_indices(form = "wide")){
 read_climate_indices = function(what = c("all", "nao", "amo", "gsi")[1],
   form = c("long", "wide")[2]){
   
-  if ("all" %in% what) what = c("nao", "amo", "gsi")
+  if ("all" %in% what) what = c("amo", "nao", "gsi")
   
   x = sapply(tolower(what),
                function(w){
@@ -271,7 +271,7 @@ read_climate_indices = function(what = c("all", "nao", "amo", "gsi")[1],
                         "amo" = read_amo(),
                         "gsi" = read_gsi())
                }, simplify = FALSE) |>
-    purrr::reduce(dplyr::left_join, by = 'date')  |>
+    purrr::reduce(dplyr::full_join, by = 'date')  |>
     dplyr::arrange(date)
   
   if (tolower(form[1]) == 'long'){

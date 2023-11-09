@@ -102,11 +102,14 @@ assemble_departure_surprise = function(x = read_export(by = 'year',
 #' @param title char or NULL  if NULL then suppress title
 #' @param y_text_angle numeric, degress to rotate the y-text labels
 #' @param display_names char, the name in order to display 
+#' @param delimit_surprise logical, if TRUE add a small vertical line on each row
+#'   that delimits where the window allows the surprise computation to begin
+#' @return ggplot object
 plot_departure_surprise = function(x = read_export(by = 'year', 
                                           selection = read_target_vars(treatment = c("median")),
                                           replace_names = TRUE, 
                                           standardize = FALSE) |>
-                            dplyr::filter(date >= as.Date("1950-01-01")),
+                            dplyr::filter(date >= as.Date("1900-01-01")),
                           surprise_window = 20, 
                           surprise_threshold = 2,
                           clip_window = TRUE,
@@ -114,13 +117,14 @@ plot_departure_surprise = function(x = read_export(by = 'year',
                           title = NULL,
                           caption = "auto",
                           y_text_angle = 0,
-                          display_names =  get_display_names()){
+                          display_names =  get_display_names(),
+                          delimit_surprise = TRUE){
   if (FALSE){
     x = read_export(by = 'year', 
-                    selection = read_target_vars(treatment = "median"),
+                    selection = read_target_vars(treatment = c("median")),
                     replace_names = TRUE, 
                     standardize = FALSE) |>
-      dplyr::filter(date >= as.Date("1950-01-01")) 
+      dplyr::filter(date >= as.Date("1900-01-01"))
 
     
     surprise_window = 20
@@ -156,7 +160,7 @@ plot_departure_surprise = function(x = read_export(by = 'year',
   rng = rng * c(-1, 1)
   
   
-  ggplot2::ggplot(long, ggplot2::aes(date, name)) +
+  gg = ggplot2::ggplot(long, ggplot2::aes(date, name)) +
     ggplot2::geom_tile(ggplot2::aes(fill = value), colour = get_color("grey90")) +
     ggplot2::scale_fill_gradient2(low = get_color("blue"), 
                                   high = get_color("red"), 
@@ -168,8 +172,24 @@ plot_departure_surprise = function(x = read_export(by = 'year',
                    color = get_color("black"),
                    alpha = 0.8,
                    size = 1,
-                   show.legend = FALSE) + 
-    ggside::geom_xsidecol(mapping = aes(date, surprise),  # this is the histogram of counts along top
+                   show.legend = FALSE) 
+  if (delimit_surprise){
+    boxes = dplyr::select(long, dplyr::all_of(c("date", "name", "value"))) |>
+      dplyr::group_by(name) |>
+      dplyr::group_map(
+        function(tbl, key){
+          ix = which(!is.na(tbl$value))              # assumed first record
+          dplyr::slice(tbl, ix[1] + surprise_window) # assumed first (possible) surprise
+        }, .keep = TRUE) |>
+      dplyr::bind_rows() |>
+      dplyr::mutate(width = 365, height = 1)
+    gg = gg + 
+      geom_tile(data = boxes, 
+                aes(x = date, y = name, width = width, height = height, fill = value),
+                color = get_color("black"),
+                linewidth = 0.2)
+  }
+    gg + ggside::geom_xsidecol(mapping = aes(date, surprise),  # this is the histogram of counts along top
                           data = z$profile_data,
                           show.legend = FALSE,
                           orientation = 'x') + 
@@ -428,16 +448,16 @@ surprise <- function(datain = read_export(by = 'year'), win = 30){
   # a temporary function applied for each iteration
   # @param i iteration number
   # @param dat essentially datain
-  # @param x the sequential index alon dat
+  # @param x the sequential index along dat
   # @param win window width
   # @param idx the sequence along the window
   # @return numeric surprise index
   surprise_one = function(i, dat = NULL, x = NULL, win = NULL, idx = NULL){
-    idx = idx + (i - win)  
-    this_y = dat[idx]
+    ix = idx + (i - win)  
+    this_y = dat[ix]
     isnotna = !is.na(this_y)
     if (sum(isnotna) < 10) return(NA_real_)
-    fit <- lm(y ~ x, data = data.frame(x = x[idx], y = this_y), na.action = na.exclude)
+    fit <- lm(y ~ x, data = data.frame(x = x[ix], y = this_y), na.action = na.exclude)
     dev <- datain[i] - predict(fit, newdata = data.frame(x=i))
     dev / sd(fit$residuals)
   }
