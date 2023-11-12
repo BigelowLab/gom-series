@@ -31,3 +31,4 @@ hab_index.west
 hab_index.east
 cal_index.spring
 cal_index.fall
+salinity

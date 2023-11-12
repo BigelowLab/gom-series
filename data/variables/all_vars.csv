@@ -96,3 +96,6 @@ hab_index.west
 nao.median
 nao.q25
 nao.q75
+salinity
+salinity.mean
+salinity.median

@@ -5,7 +5,7 @@
 #' @param filename string, the file path to the 'target_vars.txt' file
 #' @return character vector
 read_target_vars = function(treatment = c("median", "q25", "q75", "none", "all")[1],
-                            no_treatment = c("PCI", "hab", "cal"),
+                            no_treatment = c("PCI", "hab", "cal", "salinity"),
                             filename = here::here("data", "variables", "target_vars.txt")){
           
   x <- readLines(filename[1])

@@ -88,6 +88,9 @@ nao.q25,NAO,,North Atlantic Oscillation
 nao.q75,NAO,,North Atlantic Oscillation
 PCI.fall.anom.log,PCI fall,,
 PCI.spring.anom.log,PCI spring,,
+salinity,Salinity,,
+salinity.mean,Salinity,,
+salinity.median,Salinity,,
 USGS01022500.discharge,Narraguagus River,ft^3/s,"Narraguagus River at Cherryfield, Maine"
 USGS01022500.discharge.median,Narraguagus River,ft^3/s,"Narraguagus River at Cherryfield, Maine"
 USGS01022500.discharge.q25,Narraguagus River,ft^3/s,"Narraguagus River at Cherryfield, Maine"
