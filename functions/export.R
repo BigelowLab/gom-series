@@ -121,7 +121,7 @@ export = function(what = c("all","sst", "chlor", "bswm", "usgs", "ghcn",
                   ofile = here::here("data", "export", sprintf("export_%s.csv.gz", by))){
  
   if ("all" %in% what) what = c("sst", "chlor", "bswm", "usgs", "ghcn", 
-                                "climate", "hab", "buoys","pci", "calanus", "ersst")
+                                "climate", "hab", "buoys","pci", "calanus", "ersst", "salinity")
   
   xx = sapply(what,
               function(w){
@@ -136,7 +136,8 @@ export = function(what = c("all","sst", "chlor", "bswm", "usgs", "ghcn",
                        "pci" = export_pci(by = by),
                        "bswm" = export_bswm(by=by),
                        "calanus" = export_calanus(by=by),
-                       "ersst" = export_ersst(by = by)
+                       "ersst" = export_ersst(by = by),
+                       "salinity" = export_salinity(by=by)
                 ) # switch
               }, simplify = FALSE)
   
