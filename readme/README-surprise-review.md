@@ -5,7 +5,7 @@ Reviewing Surprise
 source("../setup.R")
 ```
 
-    ## here() starts at /Users/jevanilla/Documents/Bigelow/CODE/gom-series
+    ## here() starts at /mnt/s1/projects/ecocast/projects/nrecord/gom-series
 
 Below is a plot that shows standardized departures relative to the long
 term mean with “surprises” indicated with a dot.
@@ -17,7 +17,7 @@ x = read_export(by = 'year',
                 selection = read_target_vars(treatment = c("median")),
                 replace_names = TRUE, 
                 standardize = FALSE) |>
-    dplyr::filter(date >= as.Date("1950-01-01"))
+    dplyr::filter(date >= as.Date("1900-01-01"))
 plot_departure_surprise(x, surprise_window = surprise_window)
 ```
 

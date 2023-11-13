@@ -20,7 +20,7 @@ x = read_export(by = 'year',
                 selection = read_target_vars(treatment = c("median")),
                 replace_names = TRUE, 
                 standardize = FALSE) |>
-    dplyr::filter(date >= as.Date("1950-01-01"))
+    dplyr::filter(date >= as.Date("1900-01-01"))
 plot_departure_surprise(x, surprise_window = surprise_window)
 ```
 For the most part it looks correct (no surprises!), but upon close inspection you'll note that sometimes the surprise falls on a low departure year (over a whitish tile).  For example, `WMCC (HAB)` (1985 and 2003) and `GBK (SST)` (1993) show this surprising result (among others).  That it possible - relative to the long-term mean an average result might be surprising over a shorter period.  But it feels non-intuitive.

@@ -162,8 +162,12 @@ plot_departure_surprise = function(x = read_export(by = 'year',
   rng = range(long$value, na.rm = TRUE) |> abs() |> max()
   rng = rng * c(-1, 1)
   
-  
+  as_year = function(x) format(x, "%Y")
   gg = ggplot2::ggplot(long, ggplot2::aes(date, name)) +
+    ggplot2::scale_x_date(breaks = seq(from = as.Date("1900-01-01"),
+                                            to = as.Date("2020-01-01"),
+                                            by = "10 years"), 
+                          labels = as_year) + 
     ggplot2::geom_tile(ggplot2::aes(fill = value), colour = get_color("grey90")) +
     ggplot2::scale_fill_gradient2(low = get_color("blue"), 
                                   high = get_color("red"), 
