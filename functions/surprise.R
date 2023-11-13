@@ -95,7 +95,8 @@ assemble_departure_surprise = function(x = read_export(by = 'year',
 #'
 #' @param x tibble, not-standarized (so we can compute surprise) with human-readable names
 #' @param surprise_window numeric, the width of sliding window
-#' @param surprise_threshold numeric, number of standard deviatiosn that define a surprise
+#' @param min_n numeric, the number of non-NA values in a window
+#' @param surprise_threshold numeric, number of standard deviation that define a surprise
 #' @param replace_names logical, if TRUE then use simple names
 #' @param clip_window logical, if TRUE then clip columns to left that are all NA
 #' @param pruge_empty logical if TRUE clip empty rows
@@ -111,6 +112,7 @@ plot_departure_surprise = function(x = read_export(by = 'year',
                                           standardize = FALSE) |>
                             dplyr::filter(date >= as.Date("1900-01-01")),
                           surprise_window = 20, 
+                          min_n = 10, 
                           surprise_threshold = 2,
                           clip_window = TRUE,
                           purge_empty = FALSE,
@@ -128,6 +130,7 @@ plot_departure_surprise = function(x = read_export(by = 'year',
 
     
     surprise_window = 20
+    min_n = 10
     surprise_threshold = 2
     clip_window = TRUE
     purge_empty = FALSE
@@ -179,7 +182,7 @@ plot_departure_surprise = function(x = read_export(by = 'year',
       dplyr::group_map(
         function(tbl, key){
           ix = which(!is.na(tbl$value))              # assumed first record
-          dplyr::slice(tbl, ix[1] + surprise_window) # assumed first (possible) surprise
+          dplyr::slice(tbl, ix[1] + surprise_window - min_n) # assumed first (possible) surprise
         }, .keep = TRUE) |>
       dplyr::bind_rows() |>
       dplyr::mutate(width = 365, height = 1)
@@ -322,6 +325,7 @@ plot_surprise = function(x = read_export(by = 'year',
     tidyr::drop_na("name")
   
   gg = ggplot2::ggplot(long, ggplot2::aes(date, name)) +
+    ggplot2::scale_x_date(date_minor_breaks = "10 years") +
     ggplot2::geom_tile(ggplot2::aes(fill = value), colour = "grey60") +
     ggplot2::labs(x = "", 
                   y = "", 
@@ -367,7 +371,7 @@ plot_surprise = function(x = read_export(by = 'year',
 #' @return character vector of names
 get_display_names = function(){
   c("AMO", "NAO", "GSI", 
-    "ERSST",
+    "ERSST", #"Salinity",
     "WMCC (SST)", "EMCC (SST)", "GBK (SST)", "GBN (SST)", 
     "JBN (SST)", "WBN (SST)", 
     "Durham Tmin", "Blue Hill Tmin", "Corinna Tmin", 
@@ -429,9 +433,23 @@ recode_surprise = function(x,
 #' 
 #' @param datain numeric vector or a data.frame (tibble) with numeric-type variables
 #' @param win numeric, width of the sliding window
+#' @param min_n numeric, the minimum number of non-NA values to compute surprise
 #' @return numeric vector of surprise indices (standardize departures)
 #'  or if the input is a data.frame (tibble) then the input with mutated columns
-surprise <- function(datain = read_export(by = 'year'), win = 30){
+surprise <- function(datain = read_export(by = 'year'), 
+                     win = 30,
+                     min_n = 10){
+  
+  if (FALSE){
+    datain = read_export(by = 'year', 
+                selection = read_target_vars(treatment = c("median")),
+                replace_names = TRUE, 
+                standardize = FALSE) |>
+      dplyr::filter(date >= as.Date("1900-01-01"))
+    min_n = 10
+    win = 20
+  }
+  
   
   if (inherits(datain, "data.frame")){
       dataout = dplyr::ungroup(datain) |>
@@ -439,13 +457,15 @@ surprise <- function(datain = read_export(by = 'year'), win = 30){
       return(dataout)
   }
   
-
+  if (min_n > win) stop(sprintf("min_n (%i) must be less than or equal to win (%i)",
+                                min_n, win))
   nx = length(datain)
   if (nx <= win) stop("input must be longer than window")
   x = seq_len(nx)
   idx = seq_len(win) - 1L
   
-  # a temporary function applied for each iteration
+  
+  # a temporary function applied for each iteration applied per variable 
   # @param i iteration number
   # @param dat essentially datain
   # @param x the sequential index along dat
@@ -456,7 +476,7 @@ surprise <- function(datain = read_export(by = 'year'), win = 30){
     ix = idx + (i - win)  
     this_y = dat[ix]
     isnotna = !is.na(this_y)
-    if (sum(isnotna) < 10) return(NA_real_)
+    if (sum(isnotna) < min_n) return(NA_real_)
     fit <- lm(y ~ x, data = data.frame(x = x[ix], y = this_y), na.action = na.exclude)
     dev <- datain[i] - predict(fit, newdata = data.frame(x=i))
     dev / sd(fit$residuals)

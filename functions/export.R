@@ -91,6 +91,14 @@ read_export = function(by = c("year", "month")[1],
                        standardize = FALSE,
                        replace_names = FALSE,
                        ...){
+  
+  if (FALSE){
+    by = c("year", "month")[1]
+    path = here::here("data", "export")
+    selection = list("all", read_target_vars())[[2]]
+    standardize = FALSE
+    replace_names = FALSE
+  }
   filename = file.path(path, sprintf("export_%s.csv.gz", by))
   if (!file.exists(filename)) stop("export file not found:", filename)
   x = readr::read_csv(filename, col_types = readr::cols(date = col_date(),
@@ -121,7 +129,7 @@ export = function(what = c("all","sst", "chlor", "bswm", "usgs", "ghcn",
                   ofile = here::here("data", "export", sprintf("export_%s.csv.gz", by))){
  
   if ("all" %in% what) what = c("sst", "chlor", "bswm", "usgs", "ghcn", 
-                                "climate", "hab", "buoys","pci", "calanus", "ersst")
+                                "climate", "hab", "buoys","pci", "calanus", "ersst", "salinity")
   
   xx = sapply(what,
               function(w){
@@ -136,7 +144,8 @@ export = function(what = c("all","sst", "chlor", "bswm", "usgs", "ghcn",
                        "pci" = export_pci(by = by),
                        "bswm" = export_bswm(by=by),
                        "calanus" = export_calanus(by=by),
-                       "ersst" = export_ersst(by = by)
+                       "ersst" = export_ersst(by = by),
+                       "salinity" = export_salinity(by=by)
                 ) # switch
               }, simplify = FALSE)
   

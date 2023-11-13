@@ -7,7 +7,8 @@
 fetch_nao <- function(form = c("long", "wide")[1]) {
   
   #nao <- readLines("https://www.cpc.ncep.noaa.gov/products/precip/CWlink/pna/norm.nao.monthly.b5001.current.ascii.table")
-  nao <- readLines("https://psl.noaa.gov/data/correlation/nao.data")
+  #nao <- readLines("https://psl.noaa.gov/data/correlation/nao.data")
+  nao <- readLines("https://psl.noaa.gov/gcos_wgsp/Timeseries/Data/nao.long.data")
   
   dims <- nao[1] |>
     stringr::str_trim(side = "both") |>
