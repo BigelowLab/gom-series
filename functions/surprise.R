@@ -145,8 +145,8 @@ plot_departure_surprise = function(x = read_export(by = 'year',
     caption = sprintf("window: %i, threshold: %i", surprise_window, surprise_threshold)
   }
   
-  x <- x[c("date", display_names)]
-  
+  x <- dplyr::select(x, dplyr::any_of(c("date", display_names)))
+
   s = surprise(x, win = surprise_window)
   
   z = recode_surprise(s, surprise_threshold = surprise_threshold)

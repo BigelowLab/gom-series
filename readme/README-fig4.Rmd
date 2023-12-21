@@ -1,0 +1,57 @@
+---
+title: "Figure 4"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+source("../setup.R")
+```
+
+Below is a plot that shows standardized departures relative to the long term mean with "surprises" indicated with a dot.
+
+```{r}
+surprise_window = 20
+surprise_threshold = 2
+x = read_export(by = 'year', 
+                selection = read_target_vars(treatment = c("median")),
+                replace_names = TRUE, 
+                standardize = FALSE) |>
+    dplyr::filter(date >= as.Date("1900-01-01"))
+plot_departure_surprise(x, surprise_window = surprise_window)
+```
+
+```{r, warning=FALSE}
+sites = c("ERSST", "EMCC (HAB)")
+y = x |>
+  dplyr::select(dplyr::any_of(c("date", sites)))
+
+s = surprise(y, win = surprise_window) 
+
+z = recode_surprise(s, surprise_threshold = surprise_threshold)$labeled_data |>
+  tidyr::pivot_longer(dplyr::any_of(sites), names_to = "name", values_to = "surprise") 
+
+s = s |>
+  tidyr::pivot_longer(dplyr::any_of(sites), names_to = "name", values_to = "value") |>
+  mutate(surprise = z$surprise) |>
+  na.omit()
+
+ 
+ggplot(data = s, aes(x = date, y = value)) + 
+  lims(x = as.Date(c("1970-01-01", "2022-01-01"))) + 
+  labs(y = "Standarized Departure") + 
+  geom_point() + 
+  geom_point(data = droplevels(s, exclude = "no surprise") |> na.omit(),
+             aes(x = date, y = value, color = surprise), size = 2) + 
+    ggplot2::geom_smooth(aes(x = date, y = value), 
+                         se = FALSE,  
+                         linewidth = 0.75, 
+                         show.legend = TRUE,
+                         method = 'loess', 
+                         formula = 'y ~ x') +
+  
+  facet_wrap(~name, ncol = 1)
+```
