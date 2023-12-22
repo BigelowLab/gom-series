@@ -52,6 +52,7 @@ ggplot(data = s, aes(x = date, y = value)) +
                          show.legend = TRUE,
                          method = 'loess', 
                          formula = 'y ~ x') +
-  
+    geom_point(data = droplevels(s, exclude = "no surprise") |> na.omit(),
+             aes(x = date, y = value, color = surprise), size = 2) + 
   facet_wrap(~name, ncol = 1)
 ```
