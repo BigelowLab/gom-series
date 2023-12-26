@@ -23,6 +23,39 @@ plot_departure_surprise(x, surprise_window = surprise_window)
 
 ![](README-fig4_files/figure-gfm/unnamed-chunk-2-1.png)<!-- -->
 
+### Group bar graphs
+
+``` r
+vmeta = read_var_meta()
+lut = vmeta$group
+names(lut) = vmeta[['human_readable_name']]
+surprise_window = 20
+surprise_threshold = 2
+x = read_export(by = 'year', 
+                selection = read_target_vars(treatment = c("median")),
+                replace_names = TRUE, 
+                standardize = FALSE) |>
+    dplyr::filter(date >= as.Date("1900-01-01"))
+sites = colnames(x)[-1]
+s = surprise(x, win = surprise_window) 
+z = recode_surprise(s, surprise_threshold = surprise_threshold)$labeled_data |>
+  tidyr::pivot_longer(dplyr::any_of(sites), names_to = "name", values_to = "surprise") |>
+  dplyr::mutate(group = lut[name],
+                year = format(date, "%Y") |> as.numeric()) |>
+  dplyr::filter(!is.na(surprise) & surprise != "no surprise")
+
+ns = z|>
+  dplyr::summarise(surprises = n(), .by = dplyr::all_of(c("year", "group")))
+
+ggplot(data = ns, aes(x = year, y = surprises)) +
+  geom_bar(stat = "identity") +
+  facet_wrap(~ group,  ncol = 1)
+```
+
+![](README-fig4_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
+
+### Looking at time series - blech
+
 ``` r
 sites = c("ERSST", "EMCC (HAB)")
 y = x |>
@@ -51,8 +84,9 @@ ggplot(data = s, aes(x = date, y = value)) +
                          show.legend = TRUE,
                          method = 'loess', 
                          formula = 'y ~ x') +
-  
+    geom_point(data = droplevels(s, exclude = "no surprise") |> na.omit(),
+             aes(x = date, y = value, color = surprise), size = 2) + 
   facet_wrap(~name, ncol = 1)
 ```
 
-![](README-fig4_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
+![](README-fig4_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->

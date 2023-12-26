@@ -43,7 +43,7 @@ read_target_vars = function(treatment = c("median", "q25", "q75", "none", "all")
 replace_var_names <- function(x, 
                               file = here::here("data", "variables", "var_names.csv")) {
   
-  var_names <- suppressMessages(readr::read_csv(file))
+  var_names <- read_var_meta(file)
   
   lut <- var_names$analysis_name
   names(lut) <- var_names$human_readable_name
@@ -106,4 +106,12 @@ analysis_vars <- function(x = read_export(selection = "all"),
   
   return(vars)
   
+}
+
+#' Read the table of variable names and metadata
+#' 
+#' @param filename char, the name of the file
+#' @return tibble
+read_var_meta = function(filename = here::here("data", "variables", "var_names.csv")){
+  readr::read_csv(filename, show_col_types = FALSE)
 }

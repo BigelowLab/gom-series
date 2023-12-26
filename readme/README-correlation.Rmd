@@ -1,0 +1,112 @@
+---
+title: "Correlation Plot Comparison"
+output: github_document
+---
+
+
+```{r message=FALSE}
+source("../setup.R")
+```
+
+
+## Read analysis data from the export file
+
+```{r}
+x = read_export(by = 'year', 
+                selection = read_target_vars(treatment = c("median")),
+                replace_names = TRUE, 
+                standardize = FALSE) |>
+  dplyr::filter(date >= as.Date("1900-01-01"))
+
+glimpse(x)
+```
+
+Let's also read the table with standardized values
+
+```{r}
+x_standard = read_export(by = 'year', 
+                         selection = read_target_vars(treatment = c("median")),
+                         replace_names = TRUE, 
+                         standardize = TRUE) |>
+  dplyr::filter(date >= as.Date("1900-01-01"))
+
+glimpse(x_standard)
+```
+
+## Correlation test using 1900-2022
+
+Here's the correlation plot for the non-standardized (median) export table using 1900 to present and 'pairwise.complete.obs'
+
+Note that we are using `corrr::rearrange()` which arranges the matrix based on correlations, so if the order changes, the test is yielding a different result. 
+
+```{r}
+c <- x |>
+  correlate() |>
+  rearrange() |>
+  shave()
+
+rplot(c) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+```
+
+
+Correlation plot for the standardized version yields an almost identical result
+
+```{r message=FALSE, warning=FALSE}
+c <- x_standard |>
+  correlate() |>
+  rearrange() |>
+  shave()
+
+rplot(c) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+```
+
+
+## What if we use 'complete.obs'?
+
+The plot changes. We see different relationships come out in the plot and the variables are ordered differently on each axis.
+
+```{r message=FALSE}
+c <- x_standard |>
+  correlate(use="complete.obs") |>
+  rearrange() |>
+  shave()
+
+rplot(c) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+```
+
+
+## Correlation test using 1970-2022
+
+```{r}
+x_standard <- x_standard |>
+  filter(date >= as.Date("1970-01-01"))
+```
+
+Standardized version starting in 1970 still using 'pairwise.complete.obs'
+
+```{r message=FALSE, warning=FALSE}
+c <- x_standard |>
+  correlate() |>
+  rearrange() |>
+  shave()
+
+rplot(c) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+```
+
+Standardized version staring in 1970 using 'complete.obs'
+
+```{r message=FALSE, warning=FALSE}
+c <- x_standard |>
+  correlate(use="complete.obs") |>
+  rearrange() |>
+  shave()
+
+rplot(c) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+```
+
+So, the question is: which do we choose? Or maybe: what information do we want the reader to gain from this figure?

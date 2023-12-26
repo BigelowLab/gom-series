@@ -24,6 +24,41 @@ x = read_export(by = 'year',
 plot_departure_surprise(x, surprise_window = surprise_window)
 ```
 
+### Group bar graphs
+
+```{r}
+vmeta = read_var_meta()
+lut = vmeta$group
+names(lut) = vmeta[['human_readable_name']]
+surprise_window = 20
+surprise_threshold = 2
+x = read_export(by = 'year', 
+                selection = read_target_vars(treatment = c("median")),
+                replace_names = TRUE, 
+                standardize = FALSE) |>
+    dplyr::filter(date >= as.Date("1900-01-01"))
+sites = colnames(x)[-1]
+s = surprise(x, win = surprise_window) 
+z = recode_surprise(s, surprise_threshold = surprise_threshold)$labeled_data |>
+  tidyr::pivot_longer(dplyr::any_of(sites), names_to = "name", values_to = "surprise") |>
+  dplyr::mutate(group = lut[name],
+                year = format(date, "%Y") |> as.numeric()) |>
+  dplyr::filter(!is.na(surprise) & surprise != "no surprise")
+
+ns = z|>
+  dplyr::summarise(surprises = n(), .by = dplyr::all_of(c("year", "group")))
+
+ggplot(data = ns, aes(x = year, y = surprises)) +
+  geom_bar(stat = "identity") +
+  facet_wrap(~ group,  ncol = 1)
+
+
+
+```
+
+
+### Looking at time series - blech
+
 ```{r, warning=FALSE}
 sites = c("ERSST", "EMCC (HAB)")
 y = x |>
