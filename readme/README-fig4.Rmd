@@ -42,10 +42,20 @@ s = surprise(x, win = surprise_window)
 z = recode_surprise(s, surprise_threshold = surprise_threshold)$labeled_data |>
   tidyr::pivot_longer(dplyr::any_of(sites), names_to = "name", values_to = "surprise") |>
   dplyr::mutate(group = lut[name],
-                year = format(date, "%Y") |> as.numeric()) |>
-  dplyr::filter(!is.na(surprise) & surprise != "no surprise")
+                year = format(date, "%Y") |> as.numeric())
+```
 
-ns = z|>
+So who belongs to what group?
+
+```{r}
+dplyr::summarise(z, items = paste(unique(.data$name), collapse = ", "), .by = "group") 
+```
+
+Make a stacked series of barplots.
+
+```{r}
+ns = z |>
+  dplyr::filter(!is.na(surprise) & surprise != "no surprise") |>
   dplyr::summarise(surprises = n(), .by = dplyr::all_of(c("year", "group")))
 
 ggplot(data = ns, aes(x = year, y = surprises)) +

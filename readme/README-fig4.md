@@ -41,10 +41,30 @@ s = surprise(x, win = surprise_window)
 z = recode_surprise(s, surprise_threshold = surprise_threshold)$labeled_data |>
   tidyr::pivot_longer(dplyr::any_of(sites), names_to = "name", values_to = "surprise") |>
   dplyr::mutate(group = lut[name],
-                year = format(date, "%Y") |> as.numeric()) |>
-  dplyr::filter(!is.na(surprise) & surprise != "no surprise")
+                year = format(date, "%Y") |> as.numeric())
+```
 
-ns = z|>
+So who belongs to what group?
+
+``` r
+dplyr::summarise(z, items = paste(unique(.data$name), collapse = ", "), .by = "group") 
+```
+
+    ## # A tibble: 6 × 2
+    ##   group items                                                                   
+    ##   <chr> <chr>                                                                   
+    ## 1 fwi   Androscoggin River, Narraguagus River                                   
+    ## 2 wx    Durham Tmax, Durham Tmin, Blue Hill Tmax, Blue Hill Tmin, Corinna Tmax,…
+    ## 3 index NAO, AMO, GSI                                                           
+    ## 4 sst   ERSST, EMCC (SST), GBK (SST), GBN (SST), JBN (SST), WMCC (SST), WBN (SS…
+    ## 5 chl   EMCC (Chl), GBK (Chl), GBN (Chl), JBN (Chl), WMCC (Chl), WBN (Chl)      
+    ## 6 bio   PCI spring, PCI fall, WMCC (HAB), EMCC (HAB), Cal spring, Cal fall
+
+Make a stacked series of barplots.
+
+``` r
+ns = z |>
+  dplyr::filter(!is.na(surprise) & surprise != "no surprise") |>
   dplyr::summarise(surprises = n(), .by = dplyr::all_of(c("year", "group")))
 
 ggplot(data = ns, aes(x = year, y = surprises)) +
@@ -52,7 +72,7 @@ ggplot(data = ns, aes(x = year, y = surprises)) +
   facet_wrap(~ group,  ncol = 1)
 ```
 
-![](README-fig4_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
+![](README-fig4_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
 
 ### Looking at time series - blech
 
@@ -89,4 +109,4 @@ ggplot(data = s, aes(x = date, y = value)) +
   facet_wrap(~name, ncol = 1)
 ```
 
-![](README-fig4_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
+![](README-fig4_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
