@@ -63,6 +63,24 @@ long_export = function(x = read_export(by = 'year', standardize = TRUE)){
 }
 
 
+#' Mask export such that the initial surprise window becomes NA for each column
+#' 
+#' @param x tibble of export data
+#' @param surprise_window numeric the width of the window to apply
+#' @param min_n numeric minimum number in a window to permit surprise metric
+#' @param value numeric or NA, the replacement value
+#' @return the input table masked
+mask_export = function(x, surprise_window = 20, min_n = 10, value = NA){
+  x |>
+    dplyr::mutate(dplyr::across(dplyr::where(is.numeric),
+      function(v, win = 20, min_n = 10){
+        ix = which(!is.na(v))
+        if (length(ix > 0) ){
+          v[seq_len(ix[1] + win - min_n)] <- NA
+        }
+        v
+      }, win = surprise_window, min_n = min_n))
+}
 
 #' Standardize export data such that each variable has a mean of 0 and a standard deviation of 1
 #' 

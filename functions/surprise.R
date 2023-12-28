@@ -105,6 +105,7 @@ assemble_departure_surprise = function(x = read_export(by = 'year',
 #' @param display_names char, the name in order to display 
 #' @param delimit_surprise logical, if TRUE add a small vertical line on each row
 #'   that delimits where the window allows the surprise computation to begin
+#' @param mask_surprise logical, if TRUE mask out cells before the surprise can be computed
 #' @return ggplot object
 plot_departure_surprise = function(x = read_export(by = 'year', 
                                           selection = read_target_vars(treatment = c("median")),
@@ -120,15 +121,14 @@ plot_departure_surprise = function(x = read_export(by = 'year',
                           caption = "auto",
                           y_text_angle = 0,
                           display_names =  get_display_names(),
-                          delimit_surprise = TRUE){
+                          delimit_surprise = TRUE,
+                          mask_surprise = !delimit_surprise){
   if (FALSE){
     x = read_export(by = 'year', 
                     selection = read_target_vars(treatment = c("median")),
                     replace_names = TRUE, 
                     standardize = FALSE) |>
       dplyr::filter(date >= as.Date("1900-01-01"))
-
-    
     surprise_window = 20
     min_n = 10
     surprise_threshold = 2
@@ -138,6 +138,8 @@ plot_departure_surprise = function(x = read_export(by = 'year',
     caption = "auto"
     y_text_angle = 0
     display_names =  get_display_names()
+    delimit_surprise = FALSE
+    mask_surprise = !delimit_surprise
   }
   
   
@@ -148,13 +150,13 @@ plot_departure_surprise = function(x = read_export(by = 'year',
   x <- dplyr::select(x, dplyr::any_of(c("date", display_names)))
 
   s = surprise(x, win = surprise_window)
-  
   z = recode_surprise(s, surprise_threshold = surprise_threshold)
   labels = long_export(z$labeled_data) |>
     dplyr::rename(label = value) |>
     dplyr::mutate(surprise = label %in% c("-surprise", "+surprise"))
   
-  long = standardize_export(x) |>
+  long = standardize_export(x)
+  long = long |>
     long_export() |>
     dplyr::left_join(labels, by = c("date", "name")) |>
     dplyr::mutate(name = factor(name, levels = rev(display_names)))
@@ -167,8 +169,26 @@ plot_departure_surprise = function(x = read_export(by = 'year',
     ggplot2::scale_x_date(breaks = seq(from = as.Date("1900-01-01"),
                                             to = as.Date("2020-01-01"),
                                             by = "10 years"), 
-                          labels = as_year) + 
-    ggplot2::geom_tile(ggplot2::aes(fill = value), colour = get_color("grey90")) +
+                          labels = as_year) 
+  if (mask_surprise){
+    dat = dplyr::group_by(long, name) |>
+      dplyr::group_map(
+        function(tbl, key, win = 20, min_n = 10){
+          ix = which(!is.na(tbl$value))
+          if (length(ix > 0) ){
+            tbl$value[seq_len(ix[1] + win - min_n - 1)] <- NA
+          }
+          tbl
+        }, win = surprise_window, min_n = min_n, .keep = TRUE) |>
+      dplyr::bind_rows()
+    gg = gg +  
+      ggplot2::geom_tile(data = dat, ggplot2::aes(fill = value), colour = get_color("grey90")) 
+  } else {
+    gg = gg +  
+      ggplot2::geom_tile(ggplot2::aes(fill = value), colour = get_color("grey90")) 
+  }
+  
+  gg = gg +
     ggplot2::scale_fill_gradient2(low = get_color("blue"), 
                                   high = get_color("red"), 
                                   na.value = get_color("grey75"), 

@@ -13,18 +13,11 @@ term mean with “surprises” indicated with a dot.
 ``` r
 surprise_window = 20
 surprise_threshold = 2
-
-this_set = c("NAO", "ERSST")
-
-
 x = read_export(by = 'year', 
                 selection = read_target_vars(treatment = c("median")),
                 replace_names = TRUE, 
                 standardize = FALSE) |>
-    dplyr::filter(date >= as.Date("1975-01-01"))
-
-
-
+    dplyr::filter(date >= as.Date("1900-01-01"))
 
 plot_departure_surprise(x, surprise_window = surprise_window, delimit_surprise = FALSE)
 ```
