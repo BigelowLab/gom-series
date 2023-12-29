@@ -106,6 +106,11 @@ assemble_departure_surprise = function(x = read_export(by = 'year',
 #' @param delimit_surprise logical, if TRUE add a small vertical line on each row
 #'   that delimits where the window allows the surprise computation to begin
 #' @param mask_surprise logical, if TRUE mask out cells before the surprise can be computed
+#' @param meta tibble, or NULL table of meta data for grouping or NULL to skip grouping.
+#' @param meta_grouping_column char, either "group" or "cluster"
+#' @param order char or NA.  If NA order as user specified in display_names.  If
+#'   "descending" then by descending time series length. If ascending then by 
+#'   ascending time series length (short to long).
 #' @return ggplot object
 plot_departure_surprise = function(x = read_export(by = 'year', 
                                           selection = read_target_vars(treatment = c("median")),
@@ -122,7 +127,10 @@ plot_departure_surprise = function(x = read_export(by = 'year',
                           y_text_angle = 0,
                           display_names =  get_display_names(),
                           delimit_surprise = TRUE,
-                          mask_surprise = !delimit_surprise){
+                          mask_surprise = !delimit_surprise,
+                          meta = read_var_meta(),
+                          meta_grouping_column = "cluster",
+                          order = "descending"){
   if (FALSE){
     x = read_export(by = 'year', 
                     selection = read_target_vars(treatment = c("median")),
@@ -140,6 +148,9 @@ plot_departure_surprise = function(x = read_export(by = 'year',
     display_names =  get_display_names()
     delimit_surprise = FALSE
     mask_surprise = !delimit_surprise
+    meta = read_var_meta()
+    meta_grouping_column = "cluster"
+    order = "descending"
   }
   
   
@@ -148,28 +159,49 @@ plot_departure_surprise = function(x = read_export(by = 'year',
   }
   
   x <- dplyr::select(x, dplyr::any_of(c("date", display_names)))
-
+  earliest_date = min(x$date)
   s = surprise(x, win = surprise_window)
   z = recode_surprise(s, surprise_threshold = surprise_threshold)
+  lut = meta[[meta_grouping_column]]
+  names(lut) <- meta$human_readable_name
   labels = long_export(z$labeled_data) |>
     dplyr::rename(label = value) |>
-    dplyr::mutate(surprise = label %in% c("-surprise", "+surprise"))
+    dplyr::mutate(surprise = label %in% c("-surprise", "+surprise"),
+                  group = factor(lut[name]))
   
   long = standardize_export(x)
-  long = long |>
+  if (!is.na(order)){
+    len = sapply(long, function(v) sum(!is.na(v)) )[-1]
+    nm = colnames(x)[-1]
+    decreasing = tolower(order) == "descending"
+    ix = order(len, decreasing = decreasing)
+    nm = nm[ix]
+    long = dplyr::select(long, dplyr::all_of(c("date", nm)))
+  }
+  
+  long = long |> 
     long_export() |>
     dplyr::left_join(labels, by = c("date", "name")) |>
-    dplyr::mutate(name = factor(name, levels = rev(display_names)))
+    dplyr::arrange(group) |>
+    dplyr::mutate(name = factor(name, levels = rev(unique(name)))) 
+  
+  
+  ynames = lut[levels(long$name)]
+  datemax = max(long$date)
+  datemin = min(long$date)
+  ymax = ncol(x) -1
+  
+  ann = dplyr::tibble(name = levels(long$name),
+                      date = as.Date("2020-01-01"),
+                      group = lut[name]) |>
+    dplyr::mutate(name = factor(name, levels = levels(long$name)))
+
   
   rng = range(long$value, na.rm = TRUE) |> abs() |> max()
   rng = rng * c(-1, 1)
   
   as_year = function(x) format(x, "%Y")
-  gg = ggplot2::ggplot(long, ggplot2::aes(date, name)) +
-    ggplot2::scale_x_date(breaks = seq(from = as.Date("1900-01-01"),
-                                            to = as.Date("2020-01-01"),
-                                            by = "10 years"), 
-                          labels = as_year) 
+  gg = ggplot2::ggplot(long, ggplot2::aes(date, name)) 
   if (mask_surprise){
     dat = dplyr::group_by(long, name) |>
       dplyr::group_map(
@@ -181,11 +213,21 @@ plot_departure_surprise = function(x = read_export(by = 'year',
           tbl
         }, win = surprise_window, min_n = min_n, .keep = TRUE) |>
       dplyr::bind_rows()
+    start_date = seq(from = earliest_date, length = min_n+1, by = "1 year")[min_n+1]
     gg = gg +  
-      ggplot2::geom_tile(data = dat, ggplot2::aes(fill = value), colour = get_color("grey90")) 
+      ggplot2::geom_tile(data = dat, ggplot2::aes(fill = value), colour = get_color("grey90")) +
+      ggplot2::scale_x_date(breaks = seq(from = start_date,
+                                         to = as.Date("2020-01-01"),
+                                         by = "10 years"), 
+                            labels = as_year,
+                            limits = c(start_date, as.Date("2020-01-01"))) 
   } else {
     gg = gg +  
-      ggplot2::geom_tile(ggplot2::aes(fill = value), colour = get_color("grey90")) 
+      ggplot2::geom_tile(ggplot2::aes(fill = value), colour = get_color("grey90")) +
+      ggplot2::scale_x_date(breaks = seq(from = as.Date("1900-01-01"),
+                                         to = as.Date("2020-01-01"),
+                                         by = "10 years"), 
+                            labels = as_year) 
   }
   
   gg = gg +
@@ -199,7 +241,13 @@ plot_departure_surprise = function(x = read_export(by = 'year',
                    color = get_color("black"),
                    alpha = 0.8,
                    size = 1,
-                   show.legend = FALSE) 
+                   show.legend = FALSE) + 
+    ggplot2::geom_text(data = ann, aes(date, name, 
+                                       label = group,
+                                       alpha = 0.9,
+                                       hjust = -0.2),
+                       size = 3,
+                       show.legend = FALSE)
   if (delimit_surprise){
     boxes = dplyr::select(long, dplyr::all_of(c("date", "name", "value"))) |>
       dplyr::group_by(name) |>
@@ -216,19 +264,20 @@ plot_departure_surprise = function(x = read_export(by = 'year',
                 color = get_color("black"),
                 linewidth = 0.2)
   }
-    gg + ggside::geom_xsidecol(mapping = aes(date, surprise),  # this is the histogram of counts along top
-                          data = z$profile_data,
-                          show.legend = FALSE,
-                          orientation = 'x') + 
-    ggplot2::labs(x = NULL, 
-                  y = NULL,
-                  title = title,
-                  caption = caption) +
-    ggplot2::scale_y_discrete(name = NULL, 
-                              guide = guide_axis(angle = y_text_angle)) + 
-    ggplot2::theme_gray() + 
-    ggplot2::theme(axis.text.x = element_text(size=10),
-                   legend.title=element_blank()) 
+    gg + 
+      ggside::geom_xsidecol(mapping = aes(date, surprise),  # this is the histogram of counts along top
+                            data = z$profile_data,
+                            show.legend = FALSE,
+                            orientation = 'x') + 
+      ggplot2::labs(x = NULL, 
+                    y = NULL,
+                    title = title,
+                    caption = caption) +
+      ggplot2::scale_y_discrete(name = NULL, 
+                                guide = guide_axis(angle = y_text_angle)) + 
+      ggplot2::theme_gray() + 
+      ggplot2::theme(axis.text.x = element_text(size=10),
+                     legend.title=element_blank()) 
 }
 
 

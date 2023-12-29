@@ -21,7 +21,9 @@ x = read_export(by = 'year',
                 replace_names = TRUE, 
                 standardize = FALSE) |>
     dplyr::filter(date >= as.Date("1900-01-01"))
+```
 
+```{r, warning=FALSE}
 plot_departure_surprise(x, surprise_window = surprise_window, delimit_surprise = FALSE)
 ```
 

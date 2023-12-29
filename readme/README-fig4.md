@@ -18,11 +18,13 @@ x = read_export(by = 'year',
                 replace_names = TRUE, 
                 standardize = FALSE) |>
     dplyr::filter(date >= as.Date("1900-01-01"))
+```
 
+``` r
 plot_departure_surprise(x, surprise_window = surprise_window, delimit_surprise = FALSE)
 ```
 
-![](README-fig4_files/figure-gfm/unnamed-chunk-2-1.png)<!-- -->
+![](README-fig4_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
 
 ### Group bar graphs
 
@@ -73,7 +75,7 @@ ggplot(data = ns, aes(x = year, y = surprises)) +
   facet_wrap(~ group,  ncol = 1)
 ```
 
-![](README-fig4_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
+![](README-fig4_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
 
 ### Looking at time series - blech
 
@@ -110,4 +112,4 @@ ggplot(data = s, aes(x = date, y = value)) +
   facet_wrap(~name, ncol = 1)
 ```
 
-![](README-fig4_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
+![](README-fig4_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
