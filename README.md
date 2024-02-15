@@ -41,3 +41,7 @@ files.
 
 -   `export_xyz(by = c("month", "year"))` exports data into a
     wide-format suitable for joining with other datasets
+
+# Funding
+
+Partial funding for this work was provided by NSF grants OCE-2049308 & 1849227
